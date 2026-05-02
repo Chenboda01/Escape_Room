@@ -613,3 +613,27 @@ class GameMasterDashboard {
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboard = new GameMasterDashboard();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const href = btn.getAttribute('href');
+            const overlay = document.getElementById('loading-overlay');
+            const bar = document.getElementById('loading-bar');
+            const pct = document.getElementById('loading-pct');
+            overlay.style.display = 'flex';
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => { window.location.href = href; }, 200);
+                }
+                bar.style.width = progress + '%';
+                pct.textContent = Math.floor(progress) + '%';
+            }, 200);
+        });
+    });
+});
