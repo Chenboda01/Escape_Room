@@ -52,25 +52,25 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
 </head>
 <body>
 <div class="container">
-    <h1>\U0001F3EE The Lodge</h1>
+    <h1>🏮 The Lodge</h1>
     <p class="subtitle">Welcome, adventurer. Before you enter the fortress, read the ways of the realm.</p>
     <div class="instructions">
-        <h2>\U0001F4DC How This Works</h2>
-        <div class="step"><strong>1. Generate a Code</strong> \u2014 On the <strong>Admin</strong> screen, click <em>"Generate Code"</em>.</div>
-        <div class="step"><strong>2. Share the Code</strong> \u2014 Tell your players the code.</div>
-        <div class="step"><strong>3. Import on Player Screen</strong> \u2014 Type the code, click <em>"Import Code"</em>.</div>
-        <div class="step"><strong>4. Start the Game</strong> \u2014 Click <em>"Start Game"</em>. The 90-minute timer begins.</div>
-        <div class="step"><strong>5. Solve Puzzles</strong> \u2014 Mark puzzles as solved. Doors unlock automatically.</div>
-        <div class="step"><strong>6. Watch the Timer</strong> \u2014 When it reaches zero, the dragon wakes.</div>
+        <h2>📜 How This Works</h2>
+        <div class="step"><strong>1. Generate a Code</strong> — On the <strong>Admin</strong> screen, click <em>"Generate Code"</em>.</div>
+        <div class="step"><strong>2. Share the Code</strong> — Tell your players the code.</div>
+        <div class="step"><strong>3. Import on Player Screen</strong> — Type the code, click <em>"Import Code"</em>.</div>
+        <div class="step"><strong>4. Start the Game</strong> — Click <em>"Start Game"</em>. The 90-minute timer begins.</div>
+        <div class="step"><strong>5. Solve Puzzles</strong> — Mark puzzles as solved. Doors unlock automatically.</div>
+        <div class="step"><strong>6. Watch the Timer</strong> — When it reaches zero, the dragon wakes.</div>
     </div>
     <button class="btn-ready" id="btn-ready">Ready to Play</button>
 </div>
 <div id="animation-overlay">
     <div class="road"></div><div class="road-line"></div>
-    <div class="dust">\U0001F4A8</div>
-    <div class="horse-scene"><div class="horse">\U0001F40E\u200D\U0001F9CD\u200D\u2642\uFE0F</div></div>
-    <div class="city-label" id="city-label">\U0001F3F0 /admin</div>
-    <div class="teleport-text" id="teleport-text">\u2728 Arriving at the Command Keep... \u2728</div>
+    <div class="dust">&#x1F4A8;</div>
+    <div class="horse-scene"><div class="horse">&#x1F40E;&#x1F9D1;&#x1F482;</div></div>
+    <div class="city-label" id="city-label">&#x1F3F0; /admin</div>
+    <div class="teleport-text" id="teleport-text">&#x2728; Arriving at the Command Keep... &#x2728;</div>
 </div>
 <script>
 document.getElementById('btn-ready').onclick = function() {
@@ -79,7 +79,7 @@ document.getElementById('btn-ready').onclick = function() {
     setTimeout(() => document.getElementById('city-label').classList.add('show'), 2200);
     setTimeout(() => {
         document.getElementById('teleport-text').classList.add('show');
-        document.getElementById('city-label').textContent = '\u{1F3F0} /admin - Arrived!';
+        document.getElementById('city-label').textContent = '🏮 /admin - Arrived!';
     }, 3500);
     setTimeout(() => { window.location.href = 'https://chenboda01.github.io/Escape_Room/admin/'; }, 4800);
 };
