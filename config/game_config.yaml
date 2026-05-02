@@ -1,0 +1,91 @@
+# Game configuration
+GAME:
+  name: "Kingdom Magic: The Dragon's Fortress"
+  max_time_minutes: 90
+  max_hints: 5
+  rooms:
+    - id: room1
+      name: "The Restroom (Jail Room)"
+      puzzles:
+        - id: hidden_message
+          name: "Hidden Message"
+          solved: false
+          triggers: ["cabinet_search_available"]
+        - id: cabinet_search
+          name: "Cabinet Search"
+          solved: false
+          triggers: ["invisible_ink_available"]
+        - id: invisible_ink
+          name: "Invisible Ink"
+          solved: false
+          triggers: ["math_challenge_available"]
+        - id: math_challenge
+          name: "Math Challenge"
+          solved: false
+          triggers: ["shower_mechanism_available"]
+        - id: shower_mechanism
+          name: "Shower Mechanism"
+          solved: false
+          triggers: ["website_riddle_available"]
+        - id: website_riddle
+          name: "Website Riddle"
+          solved: false
+          triggers: ["door_to_room2_unlock"]
+      door_locked: true
+      
+    - id: room2
+      name: "Martin's Room (The Study)"
+      puzzles:
+        - id: under_bed
+          name: "Under the Bed"
+          solved: false
+          triggers: ["cabinet_key_obtained"]
+        - id: number_lock
+          name: "Number Lock"
+          solved: false
+          triggers: ["jigsaw_pieces_available"]
+        - id: jigsaw_puzzle
+          name: "Jigsaw Puzzle"
+          solved: false
+          triggers: ["password_revealed"]
+        - id: password
+          name: "Final Password"
+          solved: false
+          triggers: ["door_to_room3_unlock"]
+      door_locked: true
+      
+    - id: room3
+      name: "Heidi's Room (Dragon's Lair)"
+      puzzles:
+        - id: mirror_clue
+          name: "Mirror Clue"
+          solved: false
+          triggers: ["key_location_known"]
+        - id: hidden_key
+          name: "Hidden Key"
+          solved: false
+          triggers: ["color_box_available"]
+        - id: color_box
+          name: "Color-coded Box"
+          solved: false
+          triggers: ["exit_key_obtained"]
+        - id: exit_door
+          name: "Exit Door"
+          solved: false
+          triggers: ["game_complete"]
+      door_locked: true
+      dragon_awake: false
+
+# Hardware configuration
+HARDWARE:
+  serial_ports:
+    room1: "/dev/ttyUSB0"
+    room2: "/dev/ttyUSB1"
+    room3: "/dev/ttyUSB2"
+  baud_rate: 115200
+  
+# Game Master interface
+WEB:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false

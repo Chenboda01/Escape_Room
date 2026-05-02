@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdom Magic: The Dragon's Fortress - Game Master Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #0f3460;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #e94560;
+            font-size: 2.2rem;
+        }
+        
+        .logo h2 {
+            color: #4cc9f0;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+        
+        .game-controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+        
+        .btn-hint {
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            color: white;
+        }
+        
+        .btn-dragon {
+            background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        
+        .stat-card h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #e94560;
+        }
+        
+        .stat-subtext {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            margin-top: 5px;
+        }
+        
+        .rooms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .room-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            contain: layout style;
+        }
+        
+        .room-card.active {
+            border-color: #4cc9f0;
+        }
+
+        .room-card.complete {
+            border-color: #00b09b;
+        }
+        
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .room-title h3 {
+            color: #fff;
+            font-size: 1.5rem;
+        }
+        
+        .room-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-locked {
+            background: rgba(255, 65, 108, 0.2);
+            color: #ff416c;
+        }
+        
+        .status-unlocked {
+            background: rgba(0, 176, 155, 0.2);
+            color: #00b09b;
+        }
+        
+        .status-complete {
+            background: rgba(150, 201, 61, 0.2);
+            color: #96c93d;
+        }
+        
+        .puzzles {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .puzzle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 4px solid #4cc9f0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .puzzle-item.solved {
+            border-left-color: #00b09b;
+            opacity: 0.7;
+        }
+        
+        .puzzle-item.available {
+            border-left-color: #e94560;
+        }
+        
+        .puzzle-info h4 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .puzzle-id {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        
+        .puzzle-actions button {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            border: 1px solid #4cc9f0;
+        }
+        
+        .puzzle-actions button:hover {
+            background: rgba(76, 201, 240, 0.4);
+        }
+        
+        .dragon-alert {
+            background: linear-gradient(135deg, rgba(244, 107, 69, 0.1) 0%, rgba(238, 168, 73, 0.1) 100%);
+            border: 2px solid #f46b45;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .video-section {
+            margin-bottom: 30px;
+        }
+
+        .video-upload {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .file-input-wrapper {
+            flex: 1;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            color: #a0a0a0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            border: 1px solid #0f3460;
+        }
+
+        .btn-upload {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-video {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .video-status {
+            font-size: 0.85rem;
+            color: #4cc9f0;
+            margin-top: 10px;
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .connected {
+            background: rgba(0, 176, 155, 0.2);
+            color: #00b09b;
+            border: 1px solid #00b09b;
+        }
+        
+        .disconnected {
+            background: rgba(255, 65, 108, 0.2);
+            color: #ff416c;
+            border: 1px solid #ff416c;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            border-left: 4px solid #4cc9f0;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            border-left-color: #00b09b;
+        }
+        
+        .toast.error {
+            border-left-color: #ff416c;
+        }
+        
+        .toast.warning {
+            border-left-color: #f46b45;
+        }
+        
+        @media (max-width: 768px) {
+            .rooms {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>Kingdom Magic: The Dragon's Fortress</h1>
+                <h2>Game Master Dashboard</h2>
+            </div>
+            <div class="game-controls">
+                <button id="btn-start" class="btn-start">Start Game</button>
+                <button id="btn-reset" class="btn-reset">Reset Game</button>
+                <button id="btn-hint" class="btn-hint">Give Hint</button>
+                <button id="btn-dragon" class="btn-dragon">Wake Dragon</button>
+            </div>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Time Remaining</h3>
+                <div id="time-remaining" class="stat-value">90:00</div>
+                <div class="stat-subtext">Minutes:Seconds</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Hints</h3>
+                <div id="hints-remaining" class="stat-value">5</div>
+                <div class="stat-subtext">Remaining / Used: <span id="hints-used">0</span></div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Game Status</h3>
+                <div id="game-status" class="stat-value">Ready</div>
+                <div class="stat-subtext" id="game-status-sub">Click Start to begin</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Current Room</h3>
+                <div id="current-room" class="stat-value">Room 1</div>
+                <div class="stat-subtext">The Restroom (Jail Room)</div>
+            </div>
+        </div>
+        
+        <div class="video-section">
+            <h3 style="color: #4cc9f0; margin-bottom: 10px;">Introduction Video</h3>
+            <div class="video-upload">
+                <div class="file-input-wrapper">
+                    <input type="file" id="video-file-input" accept="video/*">
+                </div>
+                <button id="btn-upload-video" class="btn-upload">Upload</button>
+                <button id="btn-start-video" class="btn-video">Start Video</button>
+            </div>
+            <div id="video-status" class="video-status">No video set</div>
+        </div>
+
+        <div id="rooms-container" class="rooms">
+            <!-- Rooms will be populated by JavaScript -->
+        </div>
+        
+        <div id="dragon-alert" class="dragon-alert" style="display: none;">
+            <h3>⚠️ DRAGON IS AWAKE! ⚠️</h3>
+            <p>The dragon in Room 3 has been woken up by loud noises!</p>
+            <button id="btn-calm-dragon" class="btn-dragon">Calm Dragon</button>
+        </div>
+        
+        <div id="connection-status" class="connection-status disconnected">
+            🔴 Disconnected
+        </div>
+        
+        <div id="toast" class="toast">
+            <span id="toast-message">Message</span>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Escape Room Game Engine Dependencies
+pyserial==3.5
+Flask==3.0.0
+Flask-SocketIO==5.3.4
+eventlet==0.33.3
+python-dotenv==1.0.0
+pyyaml==6.0
+pytest==7.4.0
+pytest-asyncio==0.21.1
+# Optional for Raspberry Pi
+# RPi.GPIO==0.7.1
+# smbus2==0.4.2
