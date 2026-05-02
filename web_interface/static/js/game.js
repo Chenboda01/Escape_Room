@@ -305,6 +305,7 @@ class GameMasterDashboard {
         localStorage.setItem('escape_room_game', JSON.stringify({ paired: true, time: Date.now() }));
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
+        this.updateConnectionStatus();
         this.showToast('Code: ' + code, 'success');
         fetch('/api/pairing/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => {});
     }
@@ -356,7 +357,7 @@ class GameMasterDashboard {
     
     updateConnectionStatus() {
         const statusEl = document.getElementById('connection-status');
-        if (this.connected) {
+        if (this.connected || localStorage.getItem('escape_room_code')) {
             statusEl.className = 'connection-status connected';
             statusEl.innerHTML = '🟢 Connected';
         } else {
