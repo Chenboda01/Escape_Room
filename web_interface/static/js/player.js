@@ -244,12 +244,9 @@ class PlayerScreen {
     updateConnectionStatus() {
         const el = document.getElementById('connection-status');
         if (!el) return;
-        if (this.paired && this.connected) {
-            el.textContent = '\u{1F7E2} Paired & Connected';
+        if (this.paired) {
+            el.textContent = '\u{1F7E2} Connected';
             el.className = 'connection-status connected';
-        } else if (this.paired) {
-            el.textContent = '\u{1F534} Disconnected';
-            el.className = 'connection-status disconnected';
         } else {
             el.textContent = '\u{1F535} Waiting for code';
             el.className = 'connection-status disconnected';
