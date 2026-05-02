@@ -22,13 +22,17 @@ class GameMasterDashboard {
         this.connectWebSocket();
         this.bindEvents();
         this.updateConnectionStatus();
-        
-        // Check connection every 5 seconds
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'escape_room_code') this.updateConnectionStatus();
+        });
         this.connectionCheckInterval = setInterval(() => {
             if (!this.connected) {
                 this.checkConnection();
             }
-        }, 5000);
+            if (localStorage.getItem('escape_room_code')) {
+                this.updateConnectionStatus();
+            }
+        }, 2000);
     }
     
     connectWebSocket() {
