@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lodge - Escape Room Guide</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: #1a1a2e;
+    color: #e6e6e6;
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.container { max-width: 800px; width: 100%; }
+h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px; letter-spacing: 2px; }
+.subtitle { color: #8b7355; text-align: center; font-size: 1.1rem; margin-bottom: 40px; font-style: italic; }
+.instructions { background: rgba(0,0,0,0.3); border: 1px solid #8b7355; border-radius: 12px; padding: 30px; margin-bottom: 30px; }
+.instructions h2 { color: #d4a55a; font-size: 1.3rem; margin-bottom: 15px; border-bottom: 1px solid #8b7355; padding-bottom: 10px; }
+.instructions p { color: #c0a080; line-height: 1.8; margin-bottom: 12px; font-size: 1rem; }
+.instructions .step { margin-bottom: 10px; padding-left: 20px; border-left: 2px solid #d4a55a; }
+.instructions .step strong { color: #f0e0c0; }
+.btn-ready {
+    display: block;
+    margin: 0 auto;
+    padding: 18px 50px;
+    background: linear-gradient(135deg, #6b4a2a, #8b7355);
+    color: #f0e0c0;
+    border: 2px solid #d4a55a;
+    border-radius: 10px;
+    font-family: 'Georgia', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+.btn-ready:hover {
+    background: linear-gradient(135deg, #8b7355, #a08060);
+    box-shadow: 0 0 25px rgba(212, 165, 90, 0.4);
+    transform: scale(1.05);
+}
+.btn-ready:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+#animation-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #0a0a1e;
+    z-index: 9999;
+    overflow: hidden;
+}
+.road {
+    position: absolute;
+    bottom: 30%;
+    left: 0; right: 0;
+    height: 4px;
+    background: #8b7355;
+    box-shadow: 0 0 10px rgba(139, 115, 85, 0.5);
+}
+.road-line {
+    position: absolute;
+    bottom: calc(30% - 2px);
+    width: 40px;
+    height: 2px;
+    background: #d4a55a;
+    animation: roadLine 1s linear infinite;
+}
+@keyframes roadLine {
+    0% { left: -40px; }
+    100% { left: 100%; }
+}
+.horse-scene {
+    position: absolute;
+    bottom: calc(30% + 10px);
+    left: -200px;
+    animation: gallop 3s ease-in-out 1 forwards;
+}
+@keyframes gallop {
+    0% { left: -200px; }
+    60% { left: 40%; }
+    80% { left: 45%; transform: scaleX(1); }
+    85% { left: 48%; transform: scaleX(0.98); }
+    100% { left: 50%; transform: scaleX(1); }
+}
+.horse {
+    font-size: 4rem;
+    line-height: 1;
+    animation: bounce 0.4s ease-in-out infinite alternate;
+}
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+}
+.city-label {
+    position: absolute;
+    bottom: calc(30% + 20px);
+    right: 80px;
+    font-size: 2rem;
+    color: #d4a55a;
+    font-family: 'Georgia', serif;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(212, 165, 90, 0.3);
+    opacity: 0;
+}
+.city-label.show { opacity: 1; transition: opacity 0.5s ease; }
+.dust {
+    position: absolute;
+    bottom: calc(30% - 5px);
+    left: -200px;
+    font-size: 1.5rem;
+    animation: dust 3s ease-in-out 1 forwards;
+    opacity: 0.6;
+}
+@keyframes dust {
+    0% { left: -200px; opacity: 0.6; }
+    60% { left: 38%; opacity: 0.4; }
+    100% { left: 48%; opacity: 0; }
+}
+.teleport-text {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #d4a55a;
+    font-size: 1.5rem;
+    font-family: 'Georgia', serif;
+    letter-spacing: 4px;
+    opacity: 0;
+}
+.teleport-text.show { opacity: 1; transition: opacity 0.3s ease; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>&#x1F3EE; The Lodge</h1>
+    <p class="subtitle">Welcome, adventurer. Before you enter the fortress, read the ways of the realm.</p>
+
+    <div class="instructions">
+        <h2>&#x1F4DC; How This Works</h2>
+        <div class="step"><strong>1. Generate a Code</strong> &mdash; On the <strong>Admin</strong> screen, click <em>"Generate Code"</em>. A secret code will appear.</div>
+        <div class="step"><strong>2. Share the Code</strong> &mdash; Tell your players the code. They'll need it to enter the game.</div>
+        <div class="step"><strong>3. Import on Player Screen</strong> &mdash; On the <strong>Player</strong> screen, type the code and click <em>"Import Code"</em>.</div>
+        <div class="step"><strong>4. Start the Game</strong> &mdash; Back on the <strong>Admin</strong> screen, click <em>"Start Game"</em>. The 90-minute timer begins.</div>
+        <div class="step"><strong>5. Solve Puzzles</strong> &mdash; Mark puzzles as solved when your players crack them. Doors unlock automatically.</div>
+        <div class="step"><strong>6. Watch the Timer</strong> &mdash; Keep an eye on the countdown. When it reaches zero, the dragon wakes.</div>
+    </div>
+
+    <div class="instructions">
+        <h2>&#x2694;&#xFE0F; Game Master Tips</h2>
+        <p class="step">&#x1F4A1; You have <strong>5 hints</strong> to give. Use them wisely when players get stuck.</p>
+        <p class="step">&#x1F514; The <strong>Wake Dragon</strong> button simulates the dragon waking (scare effect). Calm it afterward.</p>
+        <p class="step">&#x1F3AC; Upload an intro video on the Admin screen, then click <em>"Start Video"</em> to play it on player screens.</p>
+        <p class="step">&#x1F517; Both screens must be on the <strong>same domain</strong> for pairing to work via localStorage.</p>
+    </div>
+
+    <button class="btn-ready" id="btn-ready">Ready to Play</button>
+</div>
+
+<div id="animation-overlay">
+    <div class="road"></div>
+    <div class="road-line"></div>
+    <div class="dust">&#x1F4A8;</div>
+    <div class="horse-scene">
+        <div class="horse">&#x1F40E;&#x200D;&#x1F9CD;&#x200D;&#x2642;&#xFE0F;</div>
+    </div>
+    <div class="city-label" id="city-label">&#x1F3F0; /admin</div>
+    <div class="teleport-text" id="teleport-text">&#x2728; Arriving at the Command Keep... &#x2728;</div>
+</div>
+
+<script>
+document.getElementById('btn-ready').addEventListener('click', function() {
+    this.disabled = true;
+    const overlay = document.getElementById('animation-overlay');
+    overlay.style.display = 'block';
+    const city = document.getElementById('city-label');
+    const text = document.getElementById('teleport-text');
+    setTimeout(() => { city.classList.add('show'); }, 2200);
+    setTimeout(() => {
+        text.classList.add('show');
+        city.textContent = '\u{1F3F0} /admin - Arrived!';
+    }, 3500);
+    setTimeout(() => { window.location.href = '/admin'; }, 4800);
+});
+</script>
+</body>
+</html>

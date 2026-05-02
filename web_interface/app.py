@@ -57,6 +57,10 @@ def player_screen():
     """Player display screen for rooms"""
     return render_template('player_screen.html')
 
+@app.route('/lodge')
+def lodge():
+    return render_template('lodge.html')
+
 @app.route('/api/game/start', methods=['POST'])
 def start_game():
     """Start a new game"""
