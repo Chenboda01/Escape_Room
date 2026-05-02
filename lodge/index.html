@@ -24,8 +24,9 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
 .instructions p { color: #c0a080; line-height: 1.8; margin-bottom: 12px; font-size: 1rem; }
 .instructions .step { margin-bottom: 10px; padding-left: 20px; border-left: 2px solid #d4a55a; }
 .instructions .step strong { color: #f0e0c0; }
-.btn-ready {
+a.btn-ready {
     display: block;
+    width: fit-content;
     margin: 0 auto;
     padding: 18px 50px;
     background: linear-gradient(135deg, #6b4a2a, #8b7355);
@@ -39,101 +40,14 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
     letter-spacing: 2px;
     transition: all 0.3s ease;
     text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
 }
-.btn-ready:hover {
+a.btn-ready:hover {
     background: linear-gradient(135deg, #8b7355, #a08060);
     box-shadow: 0 0 25px rgba(212, 165, 90, 0.4);
     transform: scale(1.05);
 }
-.btn-ready:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-#animation-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #0a0a1e;
-    z-index: 9999;
-    overflow: hidden;
-}
-.road {
-    position: absolute;
-    bottom: 30%;
-    left: 0; right: 0;
-    height: 4px;
-    background: #8b7355;
-    box-shadow: 0 0 10px rgba(139, 115, 85, 0.5);
-}
-.road-line {
-    position: absolute;
-    bottom: calc(30% - 2px);
-    width: 40px;
-    height: 2px;
-    background: #d4a55a;
-    animation: roadLine 1s linear infinite;
-}
-@keyframes roadLine {
-    0% { left: -40px; }
-    100% { left: 100%; }
-}
-.horse-scene {
-    position: absolute;
-    bottom: calc(30% + 10px);
-    left: -200px;
-    animation: gallop 3s ease-in-out 1 forwards;
-}
-@keyframes gallop {
-    0% { left: -200px; }
-    60% { left: 40%; }
-    80% { left: 45%; transform: scaleX(1); }
-    85% { left: 48%; transform: scaleX(0.98); }
-    100% { left: 50%; transform: scaleX(1); }
-}
-.horse {
-    font-size: 4rem;
-    line-height: 1;
-    animation: bounce 0.4s ease-in-out infinite alternate;
-}
-@keyframes bounce {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-8px); }
-}
-.city-label {
-    position: absolute;
-    bottom: calc(30% + 20px);
-    right: 80px;
-    font-size: 2rem;
-    color: #d4a55a;
-    font-family: 'Georgia', serif;
-    letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(212, 165, 90, 0.3);
-    opacity: 0;
-}
-.city-label.show { opacity: 1; transition: opacity 0.5s ease; }
-.dust {
-    position: absolute;
-    bottom: calc(30% - 5px);
-    left: -200px;
-    font-size: 1.5rem;
-    animation: dust 3s ease-in-out 1 forwards;
-    opacity: 0.6;
-}
-@keyframes dust {
-    0% { left: -200px; opacity: 0.6; }
-    60% { left: 38%; opacity: 0.4; }
-    100% { left: 48%; opacity: 0; }
-}
-.teleport-text {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #d4a55a;
-    font-size: 1.5rem;
-    font-family: 'Georgia', serif;
-    letter-spacing: 4px;
-    opacity: 0;
-}
-.teleport-text.show { opacity: 1; transition: opacity 0.3s ease; }
 </style>
 </head>
 <body>
@@ -159,34 +73,7 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
         <p class="step">&#x1F517; Both screens must be on the <strong>same domain</strong> for pairing to work via localStorage.</p>
     </div>
 
-    <button class="btn-ready" id="btn-ready">Ready to Play</button>
+    <a href="https://chenboda01.github.io/Escape_Room/admin/" class="btn-ready">Ready to Play</a>
 </div>
-
-<div id="animation-overlay">
-    <div class="road"></div>
-    <div class="road-line"></div>
-    <div class="dust">&#x1F4A8;</div>
-    <div class="horse-scene">
-        <div class="horse">&#x1F40E;&#x200D;&#x1F9CD;&#x200D;&#x2642;&#xFE0F;</div>
-    </div>
-    <div class="city-label" id="city-label">&#x1F3F0; /admin</div>
-    <div class="teleport-text" id="teleport-text">&#x2728; Arriving at the Command Keep... &#x2728;</div>
-</div>
-
-<script>
-document.getElementById('btn-ready').addEventListener('click', function() {
-    this.disabled = true;
-    const overlay = document.getElementById('animation-overlay');
-    overlay.style.display = 'block';
-    const city = document.getElementById('city-label');
-    const text = document.getElementById('teleport-text');
-    setTimeout(() => { city.classList.add('show'); }, 2200);
-    setTimeout(() => {
-        text.classList.add('show');
-        city.textContent = '\u{1F3F0} /admin - Arrived!';
-    }, 3500);
-    setTimeout(() => { window.location.replace('https://chenboda01.github.io/Escape_Room/admin/'); }, 4800);
-});
-</script>
 </body>
 </html>
