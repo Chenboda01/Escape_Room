@@ -8,6 +8,7 @@ class PlayerScreen {
         this.lastUpdateTimestamp = null;
         this.localTimerFrame = null;
         this.connectionCheckInterval = null;
+        this.disconnectGrace = null;
         this.timerState = {
             gameComplete: false,
             gameOver: false
@@ -34,6 +35,10 @@ class PlayerScreen {
         
         this.socket.on('connect', () => {
             console.log('Connected to game server');
+            if (this.disconnectGrace) {
+                clearTimeout(this.disconnectGrace);
+                this.disconnectGrace = null;
+            }
             this.connected = true;
             this.updateConnectionStatus();
             this.showToast('Connected to game server', 'success');
@@ -41,9 +46,11 @@ class PlayerScreen {
         
         this.socket.on('disconnect', () => {
             console.log('Disconnected from game server');
-            this.connected = false;
-            this.updateConnectionStatus();
-            this.showToast('Disconnected from game server', 'error');
+            this.disconnectGrace = setTimeout(() => {
+                this.connected = false;
+                this.updateConnectionStatus();
+                this.showToast('Disconnected from game server', 'error');
+            }, 3000);
         });
         
         this.socket.on('connected', (data) => {

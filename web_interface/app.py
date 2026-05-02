@@ -7,9 +7,9 @@ import yaml
 import json
 import os
 import logging
-from datetime import datetime
 import threading
 import time
+from datetime import datetime
 
 from game_engine.game_state import GameStateManager
 
@@ -23,30 +23,21 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 os.makedirs(app.config['VIDEO_UPLOAD_FOLDER'], exist_ok=True)
 
-# Initialize game state manager
 game_manager = GameStateManager()
-
-# Store active connections
 active_sessions = {}
 
 def game_timer_thread():
-    """Background thread to update game timer"""
     while True:
-        time.sleep(1)
+        socketio.sleep(1)
         game_manager.state.update_time()
-        
-        # Broadcast time update to all connected clients
         socketio.emit('time_update', {
             'time_remaining': game_manager.state.time_remaining,
             'game_complete': game_manager.state.game_complete,
             'game_over': game_manager.state.game_over
         })
-        
-        # Auto-save every 30 seconds
         if int(time.time()) % 30 == 0:
             game_manager.save_state()
 
-# Start timer thread
 timer_thread = threading.Thread(target=game_timer_thread, daemon=True)
 timer_thread.start()
 
