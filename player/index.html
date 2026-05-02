@@ -203,6 +203,97 @@
             transform: scale(1.05);
         }
 
+        #import-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #8b7355;
+            border-radius: 16px;
+            font-family: 'Georgia', serif;
+            max-width: 500px;
+            margin: 60px auto;
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.3);
+        }
+
+        #import-section .medieval-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        #import-section h2 {
+            color: #d4a55a;
+            font-family: 'Georgia', serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #import-section p {
+            color: #a08060;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        #import-section .code-input-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #import-section #code-input {
+            flex: 1;
+            padding: 14px 20px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #8b7355;
+            border-radius: 8px;
+            color: #d4a55a;
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            text-align: center;
+            text-transform: lowercase;
+            letter-spacing: 4px;
+            outline: none;
+        }
+
+        #import-section #code-input::placeholder {
+            color: #5a4a3a;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        #import-section #code-input:focus {
+            border-color: #d4a55a;
+            box-shadow: 0 0 20px rgba(212, 165, 90, 0.2);
+        }
+
+        #btn-import-code {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            color: #f0e0c0;
+            border: 1px solid #d4a55a;
+            border-radius: 8px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        #btn-import-code:hover {
+            background: linear-gradient(135deg, #8b7355, #a08060);
+            box-shadow: 0 0 15px rgba(212, 165, 90, 0.3);
+        }
+
         #loading-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -246,9 +337,6 @@
             font-size: 0.85rem;
             letter-spacing: 2px;
             margin-top: 15px;
-        }
-            0%, 100% { left: 6px; }
-            50% { left: calc(100% - 12px); }
         }
 
         .toast {
@@ -299,20 +387,30 @@
             <a href="../admin/" class="nav-btn">/admin</a>
         </header>
         
+        <div id="import-section">
+            <div class="medieval-icon">&#x1F5DD;</div>
+            <h2>Import Code</h2>
+            <p>Enter the pairing code shown on the Game Master's screen to connect.</p>
+            <div class="code-input-row">
+                <input type="text" id="code-input" placeholder="Enter code..." maxlength="6" autocomplete="off">
+                <button id="btn-import-code">Import Code</button>
+            </div>
+        </div>
+        
         <div class="main-display">
-            <div class="timer-container">
+            <div class="timer-container" id="timer-container">
                 <div class="timer-label">Time Remaining</div>
                 <div id="time-remaining">90:00</div>
                 <div class="timer-subtext">Minutes:Seconds</div>
             </div>
             
-            <div class="game-status">
+            <div class="game-status" id="game-status-box">
                 <div class="status-label">Game Status</div>
                 <div id="game-status">Ready</div>
                 <div id="game-status-sub">Game not started</div>
             </div>
             
-            <div class="video-section">
+            <div class="video-section" id="video-section">
                 <div class="video-label">Introduction Video</div>
                 <div id="video-player">
                     <div id="video-placeholder">Waiting for Game Master to start video...</div>

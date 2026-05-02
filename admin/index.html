@@ -237,8 +237,8 @@
         }
         
         .dragon-alert {
-            background: linear-gradient(135deg, rgba(244, 107, 69, 0.1) 0%, rgba(238, 168, 73, 0.1) 100%);
-            border: 2px solid #f46b45;
+            background: rgba(255, 65, 108, 0.15);
+            border: 2px solid #ff416c;
             border-radius: 12px;
             padding: 20px;
             margin-top: 30px;
@@ -263,6 +263,57 @@
         .nav-btn:hover {
             box-shadow: 0 0 30px rgba(124, 58, 237, 0.7), 0 0 60px rgba(59, 130, 246, 0.5);
             transform: scale(1.05);
+        }
+
+        .code-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            color: #f0e0c0;
+            border: 1px solid #d4a55a;
+            border-radius: 8px;
+            font-family: 'Georgia', serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .code-btn:hover {
+            background: linear-gradient(135deg, #8b7355, #a08060);
+            box-shadow: 0 0 15px rgba(212, 165, 90, 0.3);
+        }
+
+        #code-display {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #8b7355;
+            border-radius: 12px;
+            font-family: 'Georgia', serif;
+        }
+
+        #code-display .code-label {
+            color: #a08060;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        #code-display .code-value {
+            color: #d4a55a;
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(212, 165, 90, 0.3);
+        }
+
+        #code-display .code-hint {
+            color: #6a5a4a;
+            font-size: 0.8rem;
+            margin-top: 10px;
         }
 
         #loading-overlay {
@@ -308,9 +359,6 @@
             font-size: 0.85rem;
             letter-spacing: 2px;
             margin-top: 15px;
-        }
-            0%, 100% { left: 6px; }
-            50% { left: calc(100% - 12px); }
         }
 
         @keyframes pulse {
@@ -448,6 +496,7 @@
                 <button id="btn-hint" class="btn-hint">Give Hint</button>
                 <button id="btn-dragon" class="btn-dragon">Wake Dragon</button>
                 <a href="../player/" class="nav-btn">/player</a>
+                <button id="btn-generate-code" class="code-btn">Generate Code</button>
             </div>
         </header>
         
@@ -489,87 +538,14 @@
             <div id="video-status" class="video-status">No video set</div>
         </div>
 
+        <div id="code-display">
+            <div class="code-label">&#x1F5DD; Share this code with players</div>
+            <div class="code-value" id="pairing-code">------</div>
+            <div class="code-hint">Players enter this code on their screen to connect</div>
+        </div>
+
         <div id="rooms-container" class="rooms">
-            <div class="room-card active">
-                <div class="room-header">
-                    <div class="room-title"><h3>The Restroom (Jail Room)</h3></div>
-                    <div class="room-status status-unlocked">Unlocked</div>
-                </div>
-                <div class="puzzles">
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Hidden Message</h4><div class="puzzle-id">ID: hidden_message</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="hidden_message">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Cabinet Search</h4><div class="puzzle-id">ID: cabinet_search</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="cabinet_search">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Invisible Ink</h4><div class="puzzle-id">ID: invisible_ink</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="invisible_ink">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Math Challenge</h4><div class="puzzle-id">ID: math_challenge</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="math_challenge">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Shower Mechanism</h4><div class="puzzle-id">ID: shower_mechanism</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="shower_mechanism">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Website Riddle</h4><div class="puzzle-id">ID: website_riddle</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room1" data-puzzle="website_riddle">Mark Solved</button></div>
-                    </div>
-                </div>
-            </div>
-            <div class="room-card">
-                <div class="room-header">
-                    <div class="room-title"><h3>Martin's Room (The Study)</h3></div>
-                    <div class="room-status status-locked">Locked</div>
-                </div>
-                <div class="puzzles">
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Under the Bed</h4><div class="puzzle-id">ID: under_bed</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room2" data-puzzle="under_bed">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Number Lock</h4><div class="puzzle-id">ID: number_lock</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room2" data-puzzle="number_lock">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Jigsaw Puzzle</h4><div class="puzzle-id">ID: jigsaw_puzzle</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room2" data-puzzle="jigsaw_puzzle">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Final Password</h4><div class="puzzle-id">ID: password</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room2" data-puzzle="password">Mark Solved</button></div>
-                    </div>
-                </div>
-            </div>
-            <div class="room-card">
-                <div class="room-header">
-                    <div class="room-title"><h3>Heidi's Room (Dragon's Lair)</h3></div>
-                    <div class="room-status status-locked">Locked</div>
-                </div>
-                <div class="puzzles">
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Mirror Clue</h4><div class="puzzle-id">ID: mirror_clue</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room3" data-puzzle="mirror_clue">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Hidden Key</h4><div class="puzzle-id">ID: hidden_key</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room3" data-puzzle="hidden_key">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Color-coded Box</h4><div class="puzzle-id">ID: color_box</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room3" data-puzzle="color_box">Mark Solved</button></div>
-                    </div>
-                    <div class="puzzle-item">
-                        <div class="puzzle-info"><h4>Exit Door</h4><div class="puzzle-id">ID: exit_door</div></div>
-                        <div class="puzzle-actions"><button class="solve-puzzle-btn" data-room="room3" data-puzzle="exit_door">Mark Solved</button></div>
-                    </div>
-                </div>
-            </div>
+            <!-- Rooms will be populated by JavaScript -->
         </div>
         
         <div id="dragon-alert" class="dragon-alert" style="display: none;">

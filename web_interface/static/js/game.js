@@ -152,6 +152,7 @@ class GameMasterDashboard {
         document.getElementById('btn-calm-dragon').addEventListener('click', () => this.calmDragon());
         document.getElementById('btn-upload-video').addEventListener('click', () => this.uploadVideo());
         document.getElementById('btn-start-video').addEventListener('click', () => this.startVideoOnPlayers());
+        document.getElementById('btn-generate-code').addEventListener('click', () => this.generateCode());
     }
     
     startGame() {
@@ -296,6 +297,21 @@ class GameMasterDashboard {
     startVideoOnPlayers() {
         this.socket.emit('play_video', {});
         this.showToast('Video broadcast started on player screens', 'success');
+    }
+    
+    generateCode() {
+        fetch('/api/pairing/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('pairing-code').textContent = data.code;
+                document.getElementById('code-display').style.display = 'block';
+                this.showToast('Code: ' + data.code, 'success');
+            }
+        });
     }
     
     solvePuzzle(roomId, puzzleId) {

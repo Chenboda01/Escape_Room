@@ -265,6 +265,57 @@
             transform: scale(1.05);
         }
 
+        .code-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            color: #f0e0c0;
+            border: 1px solid #d4a55a;
+            border-radius: 8px;
+            font-family: 'Georgia', serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .code-btn:hover {
+            background: linear-gradient(135deg, #8b7355, #a08060);
+            box-shadow: 0 0 15px rgba(212, 165, 90, 0.3);
+        }
+
+        #code-display {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #8b7355;
+            border-radius: 12px;
+            font-family: 'Georgia', serif;
+        }
+
+        #code-display .code-label {
+            color: #a08060;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        #code-display .code-value {
+            color: #d4a55a;
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(212, 165, 90, 0.3);
+        }
+
+        #code-display .code-hint {
+            color: #6a5a4a;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
         #loading-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -445,6 +496,7 @@
                 <button id="btn-hint" class="btn-hint">Give Hint</button>
                 <button id="btn-dragon" class="btn-dragon">Wake Dragon</button>
                 <a href="/player" class="nav-btn">/player</a>
+                <button id="btn-generate-code" class="code-btn">Generate Code</button>
             </div>
         </header>
         
@@ -484,6 +536,12 @@
                 <button id="btn-start-video" class="btn-video">Start Video</button>
             </div>
             <div id="video-status" class="video-status">No video set</div>
+        </div>
+
+        <div id="code-display">
+            <div class="code-label">&#x1F5DD; Share this code with players</div>
+            <div class="code-value" id="pairing-code">------</div>
+            <div class="code-hint">Players enter this code on their screen to connect</div>
         </div>
 
         <div id="rooms-container" class="rooms">

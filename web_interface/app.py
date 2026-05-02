@@ -9,6 +9,8 @@ import os
 import logging
 import threading
 import time
+import random
+import string
 from datetime import datetime
 
 from game_engine.game_state import GameStateManager
@@ -25,6 +27,7 @@ os.makedirs(app.config['VIDEO_UPLOAD_FOLDER'], exist_ok=True)
 
 game_manager = GameStateManager()
 active_sessions = {}
+pairing_codes = {}
 
 def game_timer_thread():
     while True:
@@ -225,6 +228,20 @@ def video_info():
         if os.path.exists(filepath):
             return jsonify({'video': True, 'filename': filename})
     return jsonify({'video': False})
+
+@app.route('/api/pairing/create', methods=['POST'])
+def create_pairing():
+    code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    pairing_codes[code] = game_manager.state.game_id
+    return jsonify({'success': True, 'code': code})
+
+@app.route('/api/pairing/validate', methods=['POST'])
+def validate_pairing():
+    data = request.json
+    code = data.get('code', '').strip().lower()
+    if code in pairing_codes:
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
 @socketio.on('play_video')
 def handle_play_video(data):
