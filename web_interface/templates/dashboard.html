@@ -237,15 +237,40 @@
         }
         
         .dragon-alert {
-            background: linear-gradient(135deg, rgba(244, 107, 69, 0.1) 0%, rgba(238, 168, 73, 0.1) 100%);
-            border: 2px solid #f46b45;
+            background: rgba(255, 65, 108, 0.15);
+            border: 2px solid #ff416c;
             border-radius: 12px;
             padding: 20px;
             margin-top: 30px;
             text-align: center;
             animation: pulse 2s infinite;
         }
-        
+
+        .nav-btn {
+            padding: 12px 28px;
+            background: rgba(76, 201, 240, 0.08);
+            color: #4cc9f0;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.95rem;
+            border: 1px solid rgba(76, 201, 240, 0.4);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 12px rgba(76, 201, 240, 0.15), inset 0 0 12px rgba(76, 201, 240, 0.05);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            background: rgba(76, 201, 240, 0.15);
+            border-color: #4cc9f0;
+            box-shadow: 0 0 20px rgba(76, 201, 240, 0.3), inset 0 0 20px rgba(76, 201, 240, 0.08);
+            transform: translateY(-1px);
+        }
+
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -380,7 +405,7 @@
                 <button id="btn-reset" class="btn-reset">Reset Game</button>
                 <button id="btn-hint" class="btn-hint">Give Hint</button>
                 <button id="btn-dragon" class="btn-dragon">Wake Dragon</button>
-                <a href="/player" class="nav-btn" style="padding: 12px 24px; background: #0f3460; color: #4cc9f0; text-decoration: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; cursor: pointer; border: 1px solid #4cc9f0;">/player</a>
+                <a href="/player" class="nav-btn">/player</a>
             </div>
         </header>
         

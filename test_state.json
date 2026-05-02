@@ -1,0 +1,157 @@
+{
+  "game_id": "game_1776638776",
+  "start_time": 1776638776.288183,
+  "end_time": null,
+  "time_remaining": 5399.999872684479,
+  "hints_remaining": 0,
+  "hints_used": 5,
+  "rooms": {
+    "room1": {
+      "id": "room1",
+      "name": "The Restroom (Jail Room)",
+      "status": "RoomStatus.COMPLETE",
+      "puzzles": {
+        "hidden_message": {
+          "id": "hidden_message",
+          "name": "Hidden Message",
+          "status": "PuzzleStatus.SOLVED",
+          "triggers": [
+            "cabinet_search_available"
+          ],
+          "data": {}
+        },
+        "cabinet_search": {
+          "id": "cabinet_search",
+          "name": "Cabinet Search",
+          "status": "PuzzleStatus.SOLVED",
+          "triggers": [
+            "invisible_ink_available"
+          ],
+          "data": {}
+        },
+        "invisible_ink": {
+          "id": "invisible_ink",
+          "name": "Invisible Ink",
+          "status": "PuzzleStatus.SOLVED",
+          "triggers": [
+            "math_challenge_available"
+          ],
+          "data": {}
+        },
+        "math_challenge": {
+          "id": "math_challenge",
+          "name": "Math Challenge",
+          "status": "PuzzleStatus.SOLVED",
+          "triggers": [
+            "shower_mechanism_available"
+          ],
+          "data": {}
+        },
+        "shower_mechanism": {
+          "id": "shower_mechanism",
+          "name": "Shower Mechanism",
+          "status": "PuzzleStatus.SOLVED",
+          "triggers": [
+            "door_to_room2_unlock"
+          ],
+          "data": {}
+        }
+      },
+      "door_locked": false,
+      "dragon_awake": false
+    },
+    "room2": {
+      "id": "room2",
+      "name": "Martin's Room (The Study)",
+      "status": "RoomStatus.LOCKED",
+      "puzzles": {
+        "under_bed": {
+          "id": "under_bed",
+          "name": "Under the Bed",
+          "status": "PuzzleStatus.AVAILABLE",
+          "triggers": [
+            "cabinet_key_obtained"
+          ],
+          "data": {}
+        },
+        "number_lock": {
+          "id": "number_lock",
+          "name": "Number Lock",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "jigsaw_pieces_available"
+          ],
+          "data": {}
+        },
+        "jigsaw_puzzle": {
+          "id": "jigsaw_puzzle",
+          "name": "Jigsaw Puzzle",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "password_revealed"
+          ],
+          "data": {}
+        },
+        "password": {
+          "id": "password",
+          "name": "Final Password",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "door_to_room3_unlock"
+          ],
+          "data": {}
+        }
+      },
+      "door_locked": true,
+      "dragon_awake": false
+    },
+    "room3": {
+      "id": "room3",
+      "name": "Heidi's Room (Dragon's Lair)",
+      "status": "RoomStatus.LOCKED",
+      "puzzles": {
+        "mirror_clue": {
+          "id": "mirror_clue",
+          "name": "Mirror Clue",
+          "status": "PuzzleStatus.AVAILABLE",
+          "triggers": [
+            "key_location_known"
+          ],
+          "data": {}
+        },
+        "hidden_key": {
+          "id": "hidden_key",
+          "name": "Hidden Key",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "color_box_available"
+          ],
+          "data": {}
+        },
+        "color_box": {
+          "id": "color_box",
+          "name": "Color-coded Box",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "exit_key_obtained"
+          ],
+          "data": {}
+        },
+        "exit_door": {
+          "id": "exit_door",
+          "name": "Exit Door",
+          "status": "PuzzleStatus.LOCKED",
+          "triggers": [
+            "game_complete"
+          ],
+          "data": {}
+        }
+      },
+      "door_locked": true,
+      "dragon_awake": false
+    }
+  },
+  "current_room": "room1",
+  "game_complete": false,
+  "game_over": false
+}

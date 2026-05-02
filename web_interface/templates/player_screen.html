@@ -183,7 +183,32 @@
         .disconnected {
             color: #ff416c;
         }
-        
+
+        .nav-btn {
+            padding: 12px 28px;
+            background: rgba(76, 201, 240, 0.08);
+            color: #4cc9f0;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.95rem;
+            border: 1px solid rgba(76, 201, 240, 0.4);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 12px rgba(76, 201, 240, 0.15), inset 0 0 12px rgba(76, 201, 240, 0.05);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            background: rgba(76, 201, 240, 0.15);
+            border-color: #4cc9f0;
+            box-shadow: 0 0 20px rgba(76, 201, 240, 0.3), inset 0 0 20px rgba(76, 201, 240, 0.08);
+            transform: translateY(-1px);
+        }
+
         .toast {
             position: fixed;
             bottom: 80px;
@@ -229,7 +254,7 @@
                 <h1>Kingdom Magic: The Dragon's Fortress</h1>
                 <h2>Player Screen</h2>
             </div>
-            <a href="/admin" style="padding: 10px 20px; background: #0f3460; color: #4cc9f0; text-decoration: none; border-radius: 6px; font-weight: 600; border: 1px solid #4cc9f0; white-space: nowrap;">/admin</a>
+            <a href="/admin" class="nav-btn">/admin</a>
         </header>
         
         <div class="main-display">
