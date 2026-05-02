@@ -419,7 +419,9 @@ class GameMasterDashboard {
     updateConnectionStatus() {
         const el = document.getElementById('connection-status');
         if (!el) return;
-        if (this.connected || localStorage.getItem('escape_room_code')) {
+        const hasCode = localStorage.getItem('escape_room_code');
+        const hasGameState = localStorage.getItem(this.GS);
+        if (this.connected || (hasCode && hasGameState)) {
             el.className = 'connection-status connected';
             el.innerHTML = '\u{1F7E2} Connected';
         } else {
