@@ -300,17 +300,14 @@ class GameMasterDashboard {
     }
     
     generateCode() {
+        const code = Math.random().toString(36).substring(2, 8);
+        document.getElementById('pairing-code').textContent = code;
+        document.getElementById('code-display').style.display = 'block';
+        this.showToast('Code: ' + code, 'success');
         fetch('/api/pairing/create', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('pairing-code').textContent = data.code;
-                document.getElementById('code-display').style.display = 'block';
-                this.showToast('Code: ' + data.code, 'success');
-            }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
         });
     }
     

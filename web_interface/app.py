@@ -231,7 +231,8 @@ def video_info():
 
 @app.route('/api/pairing/create', methods=['POST'])
 def create_pairing():
-    code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    data = request.get_json(silent=True) or {}
+    code = data.get('code') or ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     pairing_codes[code] = game_manager.state.game_id
     return jsonify({'success': True, 'code': code})
 
