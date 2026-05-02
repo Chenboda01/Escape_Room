@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdom Magic: The Dragon's Fortress - Player Screen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #0f3460;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #e94560;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .logo h2 {
+            color: #4cc9f0;
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+        
+        .main-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .timer-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            border: 3px solid #0f3460;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .timer-label {
+            font-size: 1.8rem;
+            color: #4cc9f0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #time-remaining {
+            font-size: 6rem;
+            font-weight: 800;
+            color: #e94560;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+        }
+        
+        .timer-subtext {
+            font-size: 1.5rem;
+            color: #a0a0a0;
+        }
+        
+        .game-status {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid #0f3460;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .status-label {
+            font-size: 1.5rem;
+            color: #4cc9f0;
+            margin-bottom: 15px;
+        }
+        
+        #game-status {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #96c93d;
+            margin: 10px 0;
+        }
+        
+        #game-status-sub {
+            font-size: 1.3rem;
+            color: #a0a0a0;
+        }
+        
+        .video-section {
+            text-align: center;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .video-label {
+            font-size: 1.8rem;
+            color: #8e2de2;
+            margin-bottom: 20px;
+        }
+        
+        #video-player {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 30px;
+            border: 2px solid #8e2de2;
+            margin-bottom: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #video-placeholder {
+            font-size: 1.5rem;
+            color: #a0a0a0;
+            margin-bottom: 20px;
+        }
+        
+        .btn-video {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        
+        .btn-video:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.7);
+        }
+        
+        .connected {
+            color: #00b09b;
+        }
+        
+        .disconnected {
+            color: #ff416c;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 2.2rem;
+            }
+            
+            .logo h2 {
+                font-size: 1.3rem;
+            }
+            
+            #time-remaining {
+                font-size: 4rem;
+            }
+            
+            .timer-container, .game-status, .video-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>Kingdom Magic: The Dragon's Fortress</h1>
+                <h2>Player Screen</h2>
+            </div>
+        </header>
+        
+        <div class="main-display">
+            <div class="timer-container">
+                <div class="timer-label">Time Remaining</div>
+                <div id="time-remaining">90:00</div>
+                <div class="timer-subtext">Minutes:Seconds</div>
+            </div>
+            
+            <div class="game-status">
+                <div class="status-label">Game Status</div>
+                <div id="game-status">Ready</div>
+                <div id="game-status-sub">Game not started</div>
+            </div>
+            
+            <div class="video-section">
+                <div class="video-label">Introduction Video</div>
+                <div id="video-player">
+                    <div id="video-placeholder">Waiting for Game Master to start video...</div>
+                    <video id="intro-video" style="display: none; width: 100%; max-width: 560px;" controls>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+        
+        <div id="connection-status" class="connection-status disconnected">
+            🔴 Disconnected
+        </div>
+        
+        <div id="toast" class="toast">
+            <span id="toast-message">Message</span>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="web_interface/static/js/player.js"></script>
+</body>
+</html>
