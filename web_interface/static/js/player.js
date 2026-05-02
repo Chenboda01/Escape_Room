@@ -52,35 +52,18 @@ class PlayerScreen {
         const code = input.value.trim().toLowerCase();
         if (!code) return;
 
-        const btn = document.getElementById('btn-import-code');
-        btn.textContent = 'Connecting...';
-        btn.disabled = true;
-
-        fetch('/api/pairing/validate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                this.paired = true;
-                this.showGameUI();
-                this.updateConnectionStatus();
-                this.showToast('Paired successfully!', 'success');
-            } else {
-                input.value = '';
-                input.placeholder = 'Invalid code. Try again.';
-                btn.textContent = 'Import Code';
-                btn.disabled = false;
-                this.showToast('Invalid code', 'error');
-            }
-        })
-        .catch(() => {
-            this.showToast('Connection error', 'error');
-            btn.textContent = 'Import Code';
-            btn.disabled = false;
-        });
+        const storedCode = localStorage.getItem('escape_room_code');
+        if (code === storedCode) {
+            this.paired = true;
+            localStorage.setItem('escape_room_player_paired', 'true');
+            this.showGameUI();
+            this.updateConnectionStatus();
+            this.showToast('Paired successfully!', 'success');
+        } else {
+            input.value = '';
+            input.placeholder = 'Invalid code. Try again.';
+            this.showToast('Invalid code', 'error');
+        }
     }
 
     connectWebSocket() {

@@ -301,14 +301,12 @@ class GameMasterDashboard {
     
     generateCode() {
         const code = Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('escape_room_code', code);
+        localStorage.setItem('escape_room_game', JSON.stringify({ paired: true, time: Date.now() }));
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
         this.showToast('Code: ' + code, 'success');
-        fetch('/api/pairing/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        });
+        fetch('/api/pairing/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => {});
     }
     
     solvePuzzle(roomId, puzzleId) {
