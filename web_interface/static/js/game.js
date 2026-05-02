@@ -9,145 +9,149 @@ class GameMasterDashboard {
         this.localTimerFrame = null;
         this.connectionCheckInterval = null;
         this.disconnectGrace = null;
-        this.timerState = {
-            gameComplete: false,
-            gameOver: false
-        };
+        this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
-        
         this.init();
     }
-    
+
+    get GS() { return 'escape_room_game_state'; }
+
     init() {
         this.connectWebSocket();
         this.bindEvents();
+        this.loadFromStorage();
         this.updateConnectionStatus();
         window.addEventListener('storage', (e) => {
+            if (e.key === this.GS && e.newValue) {
+                try { this.gameState = JSON.parse(e.newValue); this.renderGameState(); } catch {}
+            }
             if (e.key === 'escape_room_code') this.updateConnectionStatus();
         });
         this.connectionCheckInterval = setInterval(() => {
-            if (!this.connected) {
-                this.checkConnection();
-            }
-            if (localStorage.getItem('escape_room_code')) {
-                this.updateConnectionStatus();
+            if (!this.connected) this.checkConnection();
+            if (localStorage.getItem('escape_room_code')) this.updateConnectionStatus();
+            const stored = localStorage.getItem(this.GS);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (JSON.stringify(parsed) !== JSON.stringify(this.gameState)) {
+                        this.gameState = parsed;
+                        this.renderGameState();
+                    }
+                } catch {}
             }
         }, 2000);
     }
-    
-    connectWebSocket() {
-        // Connect to the Socket.IO server
-        this.socket = io();
-        
-        this.socket.on('connect', () => {
-            console.log('Connected to game server');
-            if (this.disconnectGrace) {
-                clearTimeout(this.disconnectGrace);
-                this.disconnectGrace = null;
+
+    loadFromStorage() {
+        const stored = localStorage.getItem(this.GS);
+        if (stored) {
+            try {
+                this.gameState = JSON.parse(stored);
+                this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over);
+                this.renderGameState();
+            } catch {}
+        }
+    }
+
+    saveToStorage() {
+        if (this.gameState) localStorage.setItem(this.GS, JSON.stringify(this.gameState));
+    }
+
+    buildDefaultState() {
+        const rooms = {
+            room1: {
+                id: 'room1', name: 'Room 1', door_locked: true, status: 'locked',
+                dragon_awake: false, current_room: true,
+                puzzles: {
+                    hidden_message: { id: 'hidden_message', name: 'Hidden Message', status: 'available' },
+                    cabinet_search: { id: 'cabinet_search', name: 'Cabinet Search', status: 'locked' },
+                    invisible_ink: { id: 'invisible_ink', name: 'Invisible Ink', status: 'locked' },
+                    math_challenge: { id: 'math_challenge', name: 'Math Challenge', status: 'locked' },
+                    shower_mechanism: { id: 'shower_mechanism', name: 'Shower Mechanism', status: 'locked' },
+                    website_riddle: { id: 'website_riddle', name: 'Website Riddle', status: 'locked' }
+                }
+            },
+            room2: {
+                id: 'room2', name: 'Room 2', door_locked: true, status: 'locked',
+                dragon_awake: false, current_room: false,
+                puzzles: {
+                    under_bed: { id: 'under_bed', name: 'Under the Bed', status: 'locked' },
+                    number_lock: { id: 'number_lock', name: 'Number Lock', status: 'locked' },
+                    jigsaw_puzzle: { id: 'jigsaw_puzzle', name: 'Jigsaw Puzzle', status: 'locked' },
+                    password: { id: 'password', name: 'Final Password', status: 'locked' }
+                }
+            },
+            room3: {
+                id: 'room3', name: 'Room 3', door_locked: true, status: 'locked',
+                dragon_awake: false, current_room: false,
+                puzzles: {
+                    mirror_clue: { id: 'mirror_clue', name: 'Mirror Clue', status: 'locked' },
+                    hidden_key: { id: 'hidden_key', name: 'Hidden Key', status: 'locked' },
+                    color_box: { id: 'color_box', name: 'Color-coded Box', status: 'locked' },
+                    exit_door: { id: 'exit_door', name: 'Exit Door', status: 'locked' }
+                }
             }
+        };
+        return {
+            game_id: 'local_' + Date.now(),
+            start_time: null, end_time: null, time_remaining: 5400,
+            hints_remaining: 5, hints_used: 0,
+            game_complete: false, game_over: false, paused: false,
+            current_room: 'room1', rooms: rooms
+        };
+    }
+
+    connectWebSocket() {
+        this.socket = io();
+        this.socket.on('connect', () => {
+            if (this.disconnectGrace) { clearTimeout(this.disconnectGrace); this.disconnectGrace = null; }
             this.connected = true;
             this.updateConnectionStatus();
             this.showToast('Connected to game server', 'success');
         });
-        
         this.socket.on('disconnect', () => {
-            console.log('Disconnected from game server');
             this.disconnectGrace = setTimeout(() => {
                 this.connected = false;
                 this.updateConnectionStatus();
                 this.showToast('Disconnected from game server', 'error');
             }, 3000);
         });
-        
-        this.socket.on('connected', (data) => {
-            console.log('Server connected:', data);
-        });
-        
+        this.socket.on('connected', () => {});
         this.socket.on('game_state', (state) => {
-            console.log('Game state received:', state);
             this.gameState = state;
             this.syncTimer(state.time_remaining, state.game_complete, state.game_over);
             this.renderGameState();
         });
-        
         this.socket.on('time_update', (data) => {
             if (this.gameState) {
                 this.gameState.time_remaining = data.time_remaining;
                 this.gameState.game_complete = data.game_complete;
                 this.gameState.game_over = data.game_over;
             }
-
             this.syncTimer(data.time_remaining, data.game_complete, data.game_over);
         });
-        
-        this.socket.on('game_started', (data) => {
-            console.log('Game started:', data);
-
-            if (!this.gameState) {
-                this.gameState = {};
-            }
-
-            this.gameState.start_time = data.start_time;
-            this.gameState.game_complete = false;
-            this.gameState.game_over = false;
-            this.gameState.time_remaining = 90 * 60;
-            this.syncTimer(this.gameState.time_remaining, false, false);
-            this.showToast('Game started! Timer running...', 'success');
-        });
-        
-        this.socket.on('game_reset', () => {
-            console.log('Game reset');
-
-            if (this.gameState) {
-                this.gameState.start_time = null;
-                this.gameState.game_complete = false;
-                this.gameState.game_over = false;
-                this.gameState.time_remaining = 90 * 60;
-            }
-
-            this.serverTimeRemaining = 90 * 60;
-            this.displayTimeRemaining = 90 * 60;
-            this.lastUpdateTimestamp = null;
-            this.timerState.gameComplete = false;
-            this.timerState.gameOver = false;
-            this.stopLocalTimer();
-            this.updateTimer(90 * 60, false, false);
-            this.showToast('Game reset to initial state', 'warning');
-        });
-        
+        this.socket.on('game_started', () => {});
+        this.socket.on('game_reset', () => {});
         this.socket.on('hint_used', (data) => {
-            console.log('Hint used:', data);
+            if (this.gameState) { this.gameState.hints_remaining = data.hints_remaining; this.gameState.hints_used = data.hints_used; }
             this.updateHints(data.hints_remaining, data.hints_used);
-            this.showToast(`Hint given! ${data.hints_remaining} hints remaining`, 'success');
         });
-        
         this.socket.on('puzzle_solved', (data) => {
-            console.log('Puzzle solved:', data);
-            this.showToast(`Puzzle solved! Room ${data.room_id} progress updated`, 'success');
-            
-            if (data.game_complete) {
-                this.showToast('🎉 CONGRATULATIONS! Players escaped! 🎉', 'success');
-            }
+            if (data.game_complete) this.showToast('Players escaped!', 'success');
         });
-        
         this.socket.on('door_unlocked', (data) => {
-            console.log('Door unlocked:', data);
-            this.showToast(`Door to ${data.room_id} unlocked!`, 'success');
+            this.showToast('Door to ' + data.room_id + ' unlocked!', 'success');
         });
-        
-        this.socket.on('dragon_woke', (data) => {
-            console.log('Dragon woke:', data);
+        this.socket.on('dragon_woke', () => {
             document.getElementById('dragon-alert').style.display = 'block';
-            this.showToast('⚠️ DRAGON IS AWAKE! Players were too loud!', 'warning');
+            this.showToast('Dragon is awake!', 'warning');
         });
-        
-        this.socket.on('dragon_calmed', (data) => {
-            console.log('Dragon calmed:', data);
+        this.socket.on('dragon_calmed', () => {
             document.getElementById('dragon-alert').style.display = 'none';
-            this.showToast('Dragon calmed back to sleep', 'success');
         });
     }
-    
+
     bindEvents() {
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
         document.getElementById('btn-reset').addEventListener('click', () => this.resetGame());
@@ -158,481 +162,282 @@ class GameMasterDashboard {
         document.getElementById('btn-start-video').addEventListener('click', () => this.startVideoOnPlayers());
         document.getElementById('btn-generate-code').addEventListener('click', () => this.generateCode());
     }
-    
+
+    tryServerThen(method, body, fallback) {
+        fetch('/api/game/' + method, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined
+        }).then(r => r.json()).then(d => { if (!d.success && fallback) fallback(); }).catch(() => { if (fallback) fallback(); });
+    }
+
     startGame() {
-        fetch('/api/game/start', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Game started:', data);
-            } else {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error starting game:', error);
-            this.showToast('Error starting game', 'error');
-        });
+        const doStart = () => {
+            if (!this.gameState) this.gameState = this.buildDefaultState();
+            this.gameState.start_time = Date.now() / 1000;
+            this.gameState.time_remaining = 5400;
+            this.gameState.game_complete = false;
+            this.gameState.game_over = false;
+            this.timerState = { gameComplete: false, gameOver: false };
+            this.syncTimer(this.gameState.time_remaining, false, false);
+            this.renderGameState();
+            this.saveToStorage();
+            this.showToast('Game started!', 'success');
+        };
+        this.tryServerThen('start', null, doStart);
+        if (this.connected) return;
+        doStart();
     }
-    
+
     resetGame() {
-        if (confirm('Are you sure you want to reset the game? This will unlock all doors and reset puzzles.')) {
-            fetch('/api/game/reset', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Game reset:', data);
-                } else {
-                    this.showToast(`Error: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error resetting game:', error);
-                this.showToast('Error resetting game', 'error');
-            });
-        }
+        if (!confirm('Are you sure you want to reset the game?')) return;
+        const doReset = () => {
+            this.gameState = this.buildDefaultState();
+            this.timerState = { gameComplete: false, gameOver: false };
+            this.serverTimeRemaining = 5400;
+            this.displayTimeRemaining = 5400;
+            this.lastUpdateTimestamp = null;
+            this.stopLocalTimer();
+            this.updateTimer(5400, false, false);
+            this.renderGameState();
+            this.saveToStorage();
+            this.showToast('Game reset', 'warning');
+        };
+        this.tryServerThen('reset', null, doReset);
+        if (this.connected) return;
+        doReset();
     }
-    
+
+    solvePuzzle(roomId, puzzleId) {
+        const doSolve = () => {
+            if (!this.gameState || !this.gameState.rooms[roomId]) return;
+            const puzzle = this.gameState.rooms[roomId].puzzles[puzzleId];
+            if (!puzzle || puzzle.status === 'solved') return;
+            puzzle.status = 'solved';
+            this.renderGameState();
+            this.saveToStorage();
+            this.showToast('Puzzle solved! ' + puzzle.name, 'success');
+        };
+        this.tryServerThen('puzzle/solve', { room_id: roomId, puzzle_id: puzzleId }, doSolve);
+        if (this.connected) return;
+        doSolve();
+    }
+
     giveHint() {
-        fetch('/api/game/hint', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error giving hint:', error);
-            this.showToast('Error giving hint', 'error');
-        });
+        const doHint = () => {
+            if (!this.gameState || this.gameState.hints_remaining <= 0) return;
+            this.gameState.hints_remaining--;
+            this.gameState.hints_used = (this.gameState.hints_used || 0) + 1;
+            this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
+            this.saveToStorage();
+            this.showToast('Hint given! ' + this.gameState.hints_remaining + ' left', 'success');
+        };
+        this.tryServerThen('hint', null, doHint);
+        if (this.connected) return;
+        doHint();
     }
-    
+
     wakeDragon() {
-        fetch('/api/dragon/wake', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Dragon woke:', data);
-            } else {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error waking dragon:', error);
-            this.showToast('Error waking dragon', 'error');
-        });
+        const doWake = () => {
+            if (!this.gameState || !this.gameState.rooms.room3) return;
+            this.gameState.rooms.room3.dragon_awake = true;
+            document.getElementById('dragon-alert').style.display = 'block';
+            this.saveToStorage();
+            this.showToast('Dragon woke up!', 'warning');
+        };
+        this.tryServerThen('dragon/wake', null, doWake);
+        if (this.connected) return;
+        doWake();
     }
-    
+
     calmDragon() {
-        fetch('/api/dragon/calm', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Dragon calmed:', data);
-            } else {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error calming dragon:', error);
-            this.showToast('Error calming dragon', 'error');
-        });
+        const doCalm = () => {
+            if (!this.gameState || !this.gameState.rooms.room3) return;
+            this.gameState.rooms.room3.dragon_awake = false;
+            document.getElementById('dragon-alert').style.display = 'none';
+            this.saveToStorage();
+            this.showToast('Dragon calmed down', 'success');
+        };
+        this.tryServerThen('dragon/calm', null, doCalm);
+        if (this.connected) return;
+        doCalm();
     }
-    
+
     uploadVideo() {
         const fileInput = document.getElementById('video-file-input');
         const file = fileInput.files[0];
-        if (!file) {
-            this.showToast('Please select a video file', 'warning');
-            return;
-        }
-        
+        if (!file) { this.showToast('Select a video file', 'warning'); return; }
         const formData = new FormData();
         formData.append('video', file);
-        
         document.getElementById('video-status').textContent = 'Uploading...';
-        
-        fetch('/api/video/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('video-status').textContent = 'Video: ' + data.filename;
-                this.showToast('Video uploaded successfully', 'success');
-            } else {
-                document.getElementById('video-status').textContent = 'Upload failed';
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading video:', error);
-            document.getElementById('video-status').textContent = 'Upload failed';
-            this.showToast('Error uploading video', 'error');
-        });
+        fetch('/api/video/upload', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    document.getElementById('video-status').textContent = 'Video: ' + d.filename;
+                    this.showToast('Video uploaded', 'success');
+                }
+            })
+            .catch(() => this.showToast('Upload failed (static mode)', 'error'));
     }
-    
+
     startVideoOnPlayers() {
         this.socket.emit('play_video', {});
-        this.showToast('Video broadcast started on player screens', 'success');
+        this.showToast('Video broadcast started', 'success');
     }
-    
+
     generateCode() {
         const code = Math.random().toString(36).substring(2, 8);
         localStorage.setItem('escape_room_code', code);
-        localStorage.setItem('escape_room_game', JSON.stringify({ paired: true, time: Date.now() }));
+        if (this.gameState) this.saveToStorage();
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
         this.updateConnectionStatus();
         this.showToast('Code: ' + code, 'success');
         fetch('/api/pairing/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => {});
     }
-    
-    solvePuzzle(roomId, puzzleId) {
-        fetch('/api/puzzle/solve', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                room_id: roomId,
-                puzzle_id: puzzleId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error solving puzzle:', error);
-            this.showToast('Error solving puzzle', 'error');
-        });
-    }
-    
-    unlockDoor(roomId) {
-        fetch('/api/door/unlock', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                room_id: roomId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                this.showToast(`Error: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error unlocking door:', error);
-            this.showToast('Error unlocking door', 'error');
-        });
-    }
-    
-    updateConnectionStatus() {
-        const statusEl = document.getElementById('connection-status');
-        if (this.connected || localStorage.getItem('escape_room_code')) {
-            statusEl.className = 'connection-status connected';
-            statusEl.innerHTML = '🟢 Connected';
-        } else {
-            statusEl.className = 'connection-status disconnected';
-            statusEl.innerHTML = '🔴 Disconnected';
-        }
-    }
-    
+
     checkConnection() {
-        if (!this.connected && this.socket) {
-            this.socket.connect();
-        }
+        if (!this.connected && this.socket) this.socket.connect();
     }
 
     syncTimer(secondsRemaining, gameComplete, gameOver) {
-        const normalizedTime = Number.isFinite(secondsRemaining) ? Math.max(0, secondsRemaining) : 0;
-
-        this.serverTimeRemaining = normalizedTime;
-        this.displayTimeRemaining = normalizedTime;
+        const n = Number.isFinite(secondsRemaining) ? Math.max(0, secondsRemaining) : 0;
+        this.serverTimeRemaining = n;
+        this.displayTimeRemaining = n;
         this.lastUpdateTimestamp = performance.now();
         this.timerState.gameComplete = Boolean(gameComplete);
         this.timerState.gameOver = Boolean(gameOver);
-
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
-
-        if (this.shouldRunLocalTimer()) {
-            this.startLocalTimer();
-        } else {
-            this.stopLocalTimer();
-        }
+        if (this.shouldRunLocalTimer()) this.startLocalTimer();
+        else this.stopLocalTimer();
     }
 
     isGameRunning() {
-        return Boolean(
-            this.gameState &&
-            this.gameState.start_time &&
-            !this.gameState.game_complete &&
-            !this.gameState.game_over &&
-            !this.gameState.paused
-        );
+        return Boolean(this.gameState && this.gameState.start_time && !this.gameState.game_complete && !this.gameState.game_over && !this.gameState.paused);
     }
 
     shouldRunLocalTimer() {
-        return this.isGameRunning() &&
-            !this.timerState.gameComplete &&
-            !this.timerState.gameOver &&
-            this.displayTimeRemaining > 0;
+        return this.isGameRunning() && !this.timerState.gameComplete && !this.timerState.gameOver && this.displayTimeRemaining > 0;
     }
 
     getCurrentTimerSeconds() {
-        if (this.displayTimeRemaining === null || this.displayTimeRemaining === undefined) {
-            return 0;
-        }
-
-        if (this.lastUpdateTimestamp === null) {
-            return Math.max(0, this.displayTimeRemaining);
-        }
-
-        const elapsedSeconds = (performance.now() - this.lastUpdateTimestamp) / 1000;
-        return Math.max(0, this.displayTimeRemaining - elapsedSeconds);
+        if (this.displayTimeRemaining === null || this.displayTimeRemaining === undefined) return 0;
+        if (this.lastUpdateTimestamp === null) return Math.max(0, this.displayTimeRemaining);
+        return Math.max(0, this.displayTimeRemaining - (performance.now() - this.lastUpdateTimestamp) / 1000);
     }
 
     startLocalTimer() {
-        if (this.localTimerFrame !== null) {
-            return;
-        }
-
+        if (this.localTimerFrame !== null) return;
         const tick = () => {
-            const secondsRemaining = this.getCurrentTimerSeconds();
-            const localGameOver = this.timerState.gameOver || (!this.timerState.gameComplete && this.isGameRunning() && secondsRemaining <= 0);
-
-            this.updateTimer(secondsRemaining, this.timerState.gameComplete, localGameOver);
-
-            if (!this.isGameRunning() || this.timerState.gameComplete || localGameOver) {
-                this.stopLocalTimer();
-                return;
-            }
-
+            const s = this.getCurrentTimerSeconds();
+            const g = this.timerState.gameOver || (!this.timerState.gameComplete && this.isGameRunning() && s <= 0);
+            this.updateTimer(s, this.timerState.gameComplete, g);
+            if (!this.isGameRunning() || this.timerState.gameComplete || g) { this.stopLocalTimer(); return; }
             this.localTimerFrame = requestAnimationFrame(tick);
         };
-
         this.localTimerFrame = requestAnimationFrame(tick);
     }
 
     stopLocalTimer() {
-        if (this.localTimerFrame !== null) {
-            cancelAnimationFrame(this.localTimerFrame);
-            this.localTimerFrame = null;
-        }
+        if (this.localTimerFrame !== null) { cancelAnimationFrame(this.localTimerFrame); this.localTimerFrame = null; }
     }
-    
+
     updateTimer(secondsRemaining, gameComplete, gameOver) {
-        const safeSecondsRemaining = Math.max(0, Math.floor(secondsRemaining));
-        const renderKey = `${safeSecondsRemaining}:${gameComplete}:${gameOver}:${this.isGameRunning()}`;
-
-        if (this.lastRenderedTimerKey === renderKey) {
-            return;
-        }
-
-        this.lastRenderedTimerKey = renderKey;
-
-        const minutes = Math.floor(safeSecondsRemaining / 60);
-        const seconds = Math.floor(safeSecondsRemaining % 60);
-        const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        document.getElementById('time-remaining').textContent = timeStr;
-        
-        const statusEl = document.getElementById('game-status');
-        const statusSubEl = document.getElementById('game-status-sub');
-        
-        if (gameComplete) {
-            statusEl.textContent = 'Escaped!';
-            statusEl.style.color = '#00b09b';
-            statusSubEl.textContent = 'Players escaped successfully!';
-        } else if (gameOver) {
-            statusEl.textContent = 'Time\'s Up!';
-            statusEl.style.color = '#ff416c';
-            statusSubEl.textContent = 'Dragon woke up - game over';
-        } else if (this.isGameRunning()) {
-            statusEl.textContent = 'In Progress';
-            statusEl.style.color = '#4cc9f0';
-            statusSubEl.textContent = 'Game running';
-        } else {
-            statusEl.textContent = 'Ready';
-            statusEl.style.color = '#a0a0a0';
-            statusSubEl.textContent = 'Click Start to begin';
-        }
-        
-        // Update time display color based on urgency
-        const timeEl = document.getElementById('time-remaining');
-        if (safeSecondsRemaining < 300) { // Less than 5 minutes
-            timeEl.style.color = '#ff416c';
-            timeEl.style.animation = safeSecondsRemaining < 60 ? 'pulse 1s infinite' : 'none';
-        } else if (safeSecondsRemaining < 900) { // Less than 15 minutes
-            timeEl.style.color = '#f46b45';
-            timeEl.style.animation = 'none';
-        } else {
-            timeEl.style.color = '#e94560';
-            timeEl.style.animation = 'none';
-        }
+        const safe = Math.max(0, Math.floor(secondsRemaining));
+        const key = safe + ':' + gameComplete + ':' + gameOver + ':' + this.isGameRunning();
+        if (this.lastRenderedTimerKey === key) return;
+        this.lastRenderedTimerKey = key;
+        document.getElementById('time-remaining').textContent =
+            String(Math.floor(safe / 60)).padStart(2, '0') + ':' + String(Math.floor(safe % 60)).padStart(2, '0');
+        const st = document.getElementById('game-status');
+        const sb = document.getElementById('game-status-sub');
+        if (gameComplete) { st.textContent = 'Escaped!'; st.style.color = '#00b09b'; sb.textContent = 'Players escaped!'; }
+        else if (gameOver) { st.textContent = "Time's Up!"; st.style.color = '#ff416c'; sb.textContent = 'Game over'; }
+        else if (this.gameState && this.gameState.start_time) { st.textContent = 'In Progress'; st.style.color = '#4cc9f0'; sb.textContent = 'Game running'; }
+        else { st.textContent = 'Ready'; st.style.color = '#a0a0a0'; sb.textContent = 'Click Start to begin'; }
+        const te = document.getElementById('time-remaining');
+        if (safe < 300) { te.style.color = '#ff416c'; te.style.animation = safe < 60 ? 'pulse 1s infinite' : 'none'; }
+        else if (safe < 900) { te.style.color = '#f46b45'; te.style.animation = 'none'; }
+        else { te.style.color = '#e94560'; te.style.animation = 'none'; }
     }
-    
+
     updateHints(remaining, used) {
-        document.getElementById('hints-remaining').textContent = remaining;
-        document.getElementById('hints-used').textContent = used;
+        document.getElementById('hints-remaining').textContent = remaining || 0;
+        document.getElementById('hints-used').textContent = used || 0;
     }
-    
+
     renderGameState() {
         if (!this.gameState) return;
-        
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
         this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
-        
-        // Update current room
         const currentRoom = this.gameState.current_room;
         if (currentRoom && this.gameState.rooms[currentRoom]) {
-            const room = this.gameState.rooms[currentRoom];
-            document.getElementById('current-room').textContent = room.name;
+            document.getElementById('current-room').textContent = this.gameState.rooms[currentRoom].name;
         }
-        
-        // Render rooms
         this.renderRooms();
-        
-        // Update dragon alert
-        const room3 = this.gameState.rooms['room3'];
-        if (room3 && room3.dragon_awake) {
-            document.getElementById('dragon-alert').style.display = 'block';
-        } else {
-            document.getElementById('dragon-alert').style.display = 'none';
-        }
+        const room3 = this.gameState.rooms.room3;
+        if (room3 && room3.dragon_awake) document.getElementById('dragon-alert').style.display = 'block';
+        else document.getElementById('dragon-alert').style.display = 'none';
     }
-    
+
     renderRooms() {
-        const roomsContainer = document.getElementById('rooms-container');
-        roomsContainer.replaceChildren();
-        
-        Object.values(this.gameState.rooms).forEach(room => {
-            const roomEl = this.createRoomElement(room);
-            roomsContainer.appendChild(roomEl);
-        });
+        const container = document.getElementById('rooms-container');
+        container.replaceChildren();
+        Object.values(this.gameState.rooms).forEach(room => container.appendChild(this.createRoomElement(room)));
     }
-    
+
     createRoomElement(room) {
         const div = document.createElement('div');
-        div.className = 'room-card';
-        
-        if (room.id === this.gameState.current_room) {
-            div.classList.add('active');
-        }
-        
-        if (room.status === 'complete') {
-            div.classList.add('complete');
-        }
-        
-        let statusClass = 'status-locked';
-        let statusText = 'Locked';
-        
-        if (room.status === 'unlocked' || room.status === 'complete') {
-            statusClass = room.status === 'complete' ? 'status-complete' : 'status-unlocked';
-            statusText = room.status === 'complete' ? 'Complete' : 'Unlocked';
-        }
-        
+        div.className = 'room-card' + (room.id === this.gameState.current_room ? ' active' : '') + (room.status === 'complete' ? ' complete' : '');
+        let statusClass = 'status-locked', statusText = 'Locked';
+        if (room.door_locked === false) { statusClass = 'status-unlocked'; statusText = 'Unlocked'; }
+        if (room.status === 'complete') { statusClass = 'status-complete'; statusText = 'Complete'; }
         div.innerHTML = `
             <div class="room-header">
-                <div class="room-title">
-                    <h3>${room.name}</h3>
-                </div>
+                <div class="room-title"><h3>${room.name}</h3></div>
                 <div class="room-status ${statusClass}">${statusText}</div>
             </div>
-            <div class="puzzles">
-                ${Object.values(room.puzzles).map(puzzle => this.createPuzzleElement(puzzle, room.id)).join('')}
-            </div>
-            ''
-        `;
-        
-        // Add event listeners after element is added to DOM
+            <div class="puzzles">${Object.values(room.puzzles).map(p => this.createPuzzleElement(p, room.id)).join('')}</div>`;
         setTimeout(() => {
             div.querySelectorAll('.solve-puzzle-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const roomId = e.target.dataset.room;
-                    const puzzleId = e.target.dataset.puzzle;
-                    this.solvePuzzle(roomId, puzzleId);
+                    this.solvePuzzle(e.target.dataset.room, e.target.dataset.puzzle);
                 });
             });
-
         }, 0);
-        
         return div;
     }
-    
+
     createPuzzleElement(puzzle, roomId) {
-        let statusClass = '';
-        if (puzzle.status === 'solved') {
-            statusClass = 'solved';
-        } else if (puzzle.status === 'available') {
-            statusClass = 'available';
-        }
-        
+        const cls = puzzle.status === 'solved' ? ' solved' : puzzle.status === 'available' ? ' available' : '';
         return `
-            <div class="puzzle-item ${statusClass}">
-                <div class="puzzle-info">
-                    <h4>${puzzle.name}</h4>
-                    <div class="puzzle-id">ID: ${puzzle.id}</div>
-                </div>
-                <div class="puzzle-actions">
-                    ${puzzle.status === 'solved' ? 
-                        '<span style="color: #00b09b; font-weight: bold;">✓ Solved</span>' :
-                        `<button class="solve-puzzle-btn" data-room="${roomId}" data-puzzle="${puzzle.id}">
-                            Mark Solved
-                        </button>`
-                    }
-                </div>
-            </div>
-        `;
+            <div class="puzzle-item${cls}">
+                <div class="puzzle-info"><h4>${puzzle.name}</h4><div class="puzzle-id">ID: ${puzzle.id}</div></div>
+                <div class="puzzle-actions">${puzzle.status === 'solved' ? '<span style="color:#00b09b;font-weight:bold;">\u2713 Solved</span>' : '<button class="solve-puzzle-btn" data-room="' + roomId + '" data-puzzle="' + puzzle.id + '">Mark Solved</button>'}</div>
+            </div>`;
     }
-    
-    showToast(message, type = 'info') {
+
+    updateConnectionStatus() {
+        const el = document.getElementById('connection-status');
+        if (!el) return;
+        if (this.connected || localStorage.getItem('escape_room_code')) {
+            el.className = 'connection-status connected';
+            el.innerHTML = '\u{1F7E2} Connected';
+        } else {
+            el.className = 'connection-status disconnected';
+            el.innerHTML = '\u{1F534} Disconnected';
+        }
+    }
+
+    showToast(message, type) {
         const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-        
-        toastMessage.textContent = message;
-        toast.className = `toast ${type} show`;
-        
-        // Hide after 3 seconds
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
+        const msg = document.getElementById('toast-message');
+        if (!toast || !msg) return;
+        msg.textContent = message;
+        toast.className = 'toast ' + (type || 'info') + ' show';
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 }
 
-// Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboard = new GameMasterDashboard();
 });
@@ -646,16 +451,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const bar = document.getElementById('loading-bar');
             const pct = document.getElementById('loading-pct');
             overlay.style.display = 'flex';
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 15 + 5;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    setTimeout(() => { window.location.href = href; }, 200);
-                }
-                bar.style.width = progress + '%';
-                pct.textContent = Math.floor(progress) + '%';
+            let p = 0;
+            const iv = setInterval(() => {
+                p += Math.random() * 15 + 5;
+                if (p >= 100) { p = 100; clearInterval(iv); setTimeout(() => { window.location.href = href; }, 200); }
+                bar.style.width = p + '%';
+                pct.textContent = Math.floor(p) + '%';
             }, 200);
         });
     });

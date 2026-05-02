@@ -24,10 +24,25 @@ class PlayerScreen {
                 document.getElementById('code-input').value = e.newValue;
                 this.showToast('Code received: ' + e.newValue, 'success');
             }
+            if (e.key === 'escape_room_game_state' && e.newValue && this.paired) {
+                try { this.gameState = JSON.parse(e.newValue); this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over); } catch {}
+            }
         });
         this.connectionCheckInterval = setInterval(() => {
             if (!this.connected) this.checkConnection();
-        }, 5000);
+            if (this.paired) {
+                const stored = localStorage.getItem('escape_room_game_state');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (JSON.stringify(parsed) !== JSON.stringify(this.gameState)) {
+                            this.gameState = parsed;
+                            this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over);
+                        }
+                    } catch {}
+                }
+            }
+        }, 1000);
     }
 
     showImportUI() {
