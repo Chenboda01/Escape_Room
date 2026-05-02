@@ -19,6 +19,12 @@ class PlayerScreen {
         this.connectWebSocket();
         this.bindEvents();
         this.showImportUI();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'escape_room_code' && e.newValue && !this.paired) {
+                document.getElementById('code-input').value = e.newValue;
+                this.showToast('Code received: ' + e.newValue, 'success');
+            }
+        });
         this.connectionCheckInterval = setInterval(() => {
             if (!this.connected) this.checkConnection();
         }, 5000);
@@ -52,18 +58,10 @@ class PlayerScreen {
         const code = input.value.trim().toLowerCase();
         if (!code) return;
 
-        const storedCode = localStorage.getItem('escape_room_code');
-        if (code === storedCode) {
-            this.paired = true;
-            localStorage.setItem('escape_room_player_paired', 'true');
-            this.showGameUI();
-            this.updateConnectionStatus();
-            this.showToast('Paired successfully!', 'success');
-        } else {
-            input.value = '';
-            input.placeholder = 'Invalid code. Try again.';
-            this.showToast('Invalid code', 'error');
-        }
+        this.paired = true;
+        this.showGameUI();
+        this.updateConnectionStatus();
+        this.showToast('Paired with code: ' + code, 'success');
     }
 
     connectWebSocket() {
