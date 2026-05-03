@@ -396,13 +396,18 @@ class GameMasterDashboard {
     giveHint() {
         const doHint = () => {
             if (!this.gameState || this.gameState.hints_remaining <= 0) return;
+            const prePromptSeconds = this.getCurrentTimerSeconds();
             const message = prompt('Write your message in the box below:');
-            if (!message || !message.trim()) return;
+            if (!message || !message.trim()) {
+                if (this.isGameRunning()) this.syncTimer(prePromptSeconds, false, false);
+                return;
+            }
             this.gameState.hints_remaining--;
             this.gameState.hints_used = (this.gameState.hints_used || 0) + 1;
             this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
             this.saveToStorage();
             localStorage.setItem(this.HINT, JSON.stringify({ id: Date.now(), message: message.trim() }));
+            if (this.isGameRunning()) this.syncTimer(prePromptSeconds, false, false);
             this.showToast('Hint sent! ' + this.gameState.hints_remaining + ' left', 'success');
         };
         if (this.connected) this.tryServerThen('hint', null, doHint);
@@ -713,11 +718,16 @@ class GameMasterDashboard {
 
         const id = el.dataset.customId;
         if (this.customMode === 'rename') {
+            const prePromptSeconds = this.getCurrentTimerSeconds();
             const label = prompt('Rename this item:', el.textContent.trim());
-            if (!label || !label.trim()) return;
+            if (!label || !label.trim()) {
+                if (this.isGameRunning()) this.syncTimer(prePromptSeconds, false, false);
+                return;
+            }
             this.customState.labels[id] = label.trim();
             this.saveCustomizerState();
             this.applyCustomizerState();
+            if (this.isGameRunning()) this.syncTimer(prePromptSeconds, false, false);
             this.showToast('Renamed', 'success');
         } else if (this.customMode === 'remove') {
             this.customState.removed[id] = true;
