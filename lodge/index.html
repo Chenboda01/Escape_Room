@@ -96,6 +96,8 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
 <script>
 document.getElementById('btn-ready').onclick = function() {
     this.disabled = true;
+    const adminUrl = 'https://chenboda01.github.io/Escape_Room/admin/';
+    window.open(adminUrl, '_blank');
     const overlay = document.getElementById('animation-overlay');
     overlay.style.display = 'block';
     setTimeout(() => document.getElementById('city-label').classList.add('show'), 2200);
@@ -106,7 +108,7 @@ document.getElementById('btn-ready').onclick = function() {
         document.getElementById('teleport-text').classList.add('show');
         document.getElementById('city-label').textContent = '🏮 /admin - Arrived!';
     }, 3500);
-    setTimeout(() => { window.location.href = 'https://chenboda01.github.io/Escape_Room/admin/'; }, 4800);
+    setTimeout(() => { window.location.href = adminUrl; }, 4800);
 };
 </script>
 </body>
