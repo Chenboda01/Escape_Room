@@ -47,12 +47,16 @@ class GameMasterDashboard {
         if (stored) {
             try {
                 this.gameState = JSON.parse(stored);
-                this.gameState.start_time = null;
-                this.gameState.game_active = false;
-                this.gameState.time_remaining = 5400;
-                this.gameState.game_complete = false;
-                this.gameState.game_over = false;
-                this.gameState.paused = false;
+                if (this.gameState.game_complete || this.gameState.game_over) {
+                    this.gameState = this.buildDefaultState();
+                } else {
+                    this.gameState.start_time = null;
+                    this.gameState.game_active = false;
+                    this.gameState.time_remaining = 5400;
+                    this.gameState.game_complete = false;
+                    this.gameState.game_over = false;
+                    this.gameState.paused = false;
+                }
                 if (this.gameState.time_remaining !== undefined) {
                     this.serverTimeRemaining = this.gameState.time_remaining;
                     this.displayTimeRemaining = this.gameState.time_remaining;
@@ -301,7 +305,15 @@ class GameMasterDashboard {
         const code = Math.random().toString(36).substring(2, 8);
         localStorage.setItem('escape_room_code', code);
         this.localConnected = true;
-        if (this.gameState) this.saveToStorage();
+        this.gameState = this.buildDefaultState();
+        this.timerState = { gameComplete: false, gameOver: false };
+        this.serverTimeRemaining = 5400;
+        this.displayTimeRemaining = 5400;
+        this.lastUpdateTimestamp = null;
+        this.stopLocalTimer();
+        this.updateTimer(5400, false, false);
+        this.renderGameState();
+        this.saveToStorage();
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
         this.updateConnectionStatus();
