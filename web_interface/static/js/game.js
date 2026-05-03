@@ -473,6 +473,7 @@ class GameMasterDashboard {
 
         toggle.addEventListener('click', () => {
             panel.classList.toggle('open');
+            if (!panel.classList.contains('open')) this.setCustomMode(null);
             this.renderInventory();
         });
         document.getElementById('custom-rename').addEventListener('click', () => this.setCustomMode('rename'));
