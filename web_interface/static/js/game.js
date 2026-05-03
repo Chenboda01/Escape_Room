@@ -12,15 +12,21 @@ class GameMasterDashboard {
         this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
         this.localConnected = false;
+        this.customMode = null;
+        this.customState = { labels: {}, positions: {}, removed: {} };
+        this.dragState = null;
+        this.skipNextCustomClick = false;
         this.init();
     }
 
     get GS() { return 'escape_room_game_state'; }
+    get CS() { return 'escape_room_customizer'; }
 
     init() {
         this.connectWebSocket();
         this.bindEvents();
         this.loadFromStorage();
+        this.initCustomizer();
         window.addEventListener('storage', (e) => {
             if (e.key === this.GS && e.newValue) {
                 try { this.gameState = JSON.parse(e.newValue); this.renderGameState(); } catch {}
@@ -456,6 +462,185 @@ class GameMasterDashboard {
             el.className = 'connection-status disconnected';
             el.innerHTML = '\u{1F534} Disconnected';
         }
+    }
+
+    initCustomizer() {
+        this.loadCustomizerState();
+        this.applyCustomizerState();
+        const toggle = document.getElementById('settings-toggle');
+        const panel = document.getElementById('customizer-panel');
+        if (!toggle || !panel) return;
+
+        toggle.addEventListener('click', () => {
+            panel.classList.toggle('open');
+            this.renderInventory();
+        });
+        document.getElementById('custom-rename').addEventListener('click', () => this.setCustomMode('rename'));
+        document.getElementById('custom-move').addEventListener('click', () => this.setCustomMode('move'));
+        document.getElementById('custom-remove').addEventListener('click', () => this.setCustomMode('remove'));
+        document.getElementById('custom-reset').addEventListener('click', () => this.resetCustomizer());
+
+        document.addEventListener('click', (e) => this.handleCustomClick(e), true);
+        document.addEventListener('pointerdown', (e) => this.startCustomDrag(e), true);
+        document.addEventListener('pointermove', (e) => this.moveCustomDrag(e), true);
+        document.addEventListener('pointerup', () => this.endCustomDrag(), true);
+        this.renderInventory();
+    }
+
+    loadCustomizerState() {
+        try {
+            const stored = JSON.parse(localStorage.getItem(this.CS) || '{}');
+            this.customState = {
+                labels: stored.labels || {},
+                positions: stored.positions || {},
+                removed: stored.removed || {}
+            };
+        } catch {
+            this.customState = { labels: {}, positions: {}, removed: {} };
+        }
+    }
+
+    saveCustomizerState() {
+        localStorage.setItem(this.CS, JSON.stringify(this.customState));
+    }
+
+    customizableElements() {
+        return Array.from(document.querySelectorAll('[data-custom-id]'));
+    }
+
+    getCustomElement(id) {
+        return document.querySelector('[data-custom-id="' + id + '"]');
+    }
+
+    applyCustomizerState() {
+        this.customizableElements().forEach(el => {
+            const id = el.dataset.customId;
+            if (!el.dataset.defaultLabel) el.dataset.defaultLabel = el.textContent.trim();
+            el.textContent = this.customState.labels[id] || el.dataset.defaultLabel;
+            el.classList.toggle('custom-hidden', Boolean(this.customState.removed[id]));
+            const pos = this.customState.positions[id];
+            if (pos) {
+                el.style.position = 'fixed';
+                el.style.left = pos.left + 'px';
+                el.style.top = pos.top + 'px';
+                el.style.zIndex = '1050';
+                el.style.margin = '0';
+            } else {
+                el.style.position = '';
+                el.style.left = '';
+                el.style.top = '';
+                el.style.zIndex = '';
+                el.style.margin = '';
+            }
+        });
+    }
+
+    setCustomMode(mode) {
+        this.customMode = this.customMode === mode ? null : mode;
+        document.querySelectorAll('#customizer-panel .customizer-actions button').forEach(btn => btn.classList.remove('active'));
+        if (this.customMode) document.getElementById('custom-' + this.customMode).classList.add('active');
+        this.customizableElements().forEach(el => el.classList.toggle('customizable-selecting', Boolean(this.customMode)));
+        this.showToast(this.customMode ? 'Editor mode: ' + this.customMode : 'Editor mode off', 'info');
+    }
+
+    handleCustomClick(e) {
+        const el = e.target.closest('[data-custom-id]');
+        if (!el || !this.customMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.skipNextCustomClick) { this.skipNextCustomClick = false; return; }
+
+        const id = el.dataset.customId;
+        if (this.customMode === 'rename') {
+            const label = prompt('Rename this item:', el.textContent.trim());
+            if (!label || !label.trim()) return;
+            this.customState.labels[id] = label.trim();
+            this.saveCustomizerState();
+            this.applyCustomizerState();
+            this.showToast('Renamed', 'success');
+        } else if (this.customMode === 'remove') {
+            this.customState.removed[id] = true;
+            this.saveCustomizerState();
+            this.applyCustomizerState();
+            this.renderInventory();
+            this.showToast('Moved to gear inventory', 'warning');
+        }
+    }
+
+    startCustomDrag(e) {
+        if (this.customMode !== 'move') return;
+        const el = e.target.closest('[data-custom-id]');
+        if (!el || el.classList.contains('custom-hidden')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = el.getBoundingClientRect();
+        this.dragState = { el, startX: e.clientX, startY: e.clientY, left: rect.left, top: rect.top, moved: false };
+        el.classList.add('customizable-moving');
+        el.setPointerCapture?.(e.pointerId);
+    }
+
+    moveCustomDrag(e) {
+        if (!this.dragState) return;
+        e.preventDefault();
+        const dx = e.clientX - this.dragState.startX;
+        const dy = e.clientY - this.dragState.startY;
+        if (Math.abs(dx) + Math.abs(dy) > 3) this.dragState.moved = true;
+        const left = Math.max(0, Math.min(window.innerWidth - this.dragState.el.offsetWidth, this.dragState.left + dx));
+        const top = Math.max(0, Math.min(window.innerHeight - this.dragState.el.offsetHeight, this.dragState.top + dy));
+        this.dragState.el.style.position = 'fixed';
+        this.dragState.el.style.left = left + 'px';
+        this.dragState.el.style.top = top + 'px';
+        this.dragState.el.style.zIndex = '1050';
+        this.dragState.el.style.margin = '0';
+    }
+
+    endCustomDrag() {
+        if (!this.dragState) return;
+        const id = this.dragState.el.dataset.customId;
+        const rect = this.dragState.el.getBoundingClientRect();
+        this.customState.positions[id] = { left: Math.round(rect.left), top: Math.round(rect.top) };
+        this.dragState.el.classList.remove('customizable-moving');
+        this.saveCustomizerState();
+        if (this.dragState.moved) this.skipNextCustomClick = true;
+        this.dragState = null;
+    }
+
+    renderInventory() {
+        const inventory = document.getElementById('custom-inventory');
+        if (!inventory) return;
+        const removed = Object.keys(this.customState.removed).filter(id => this.customState.removed[id]);
+        if (!removed.length) {
+            inventory.innerHTML = '<div class="inventory-empty">Removed controls appear here.</div>';
+            return;
+        }
+        inventory.replaceChildren();
+        removed.forEach(id => {
+            const el = this.getCustomElement(id);
+            const item = document.createElement('div');
+            item.className = 'inventory-item';
+            const label = document.createElement('span');
+            label.textContent = this.customState.labels[id] || el?.dataset.defaultLabel || id;
+            const restore = document.createElement('button');
+            restore.type = 'button';
+            restore.textContent = 'Restore';
+            restore.addEventListener('click', () => {
+                delete this.customState.removed[id];
+                this.saveCustomizerState();
+                this.applyCustomizerState();
+                this.renderInventory();
+            });
+            item.append(label, restore);
+            inventory.appendChild(item);
+        });
+    }
+
+    resetCustomizer() {
+        if (!confirm('Reset all renamed, moved, and removed controls?')) return;
+        this.customState = { labels: {}, positions: {}, removed: {} };
+        this.saveCustomizerState();
+        this.applyCustomizerState();
+        this.renderInventory();
+        this.setCustomMode(null);
     }
 
     showToast(message, type) {
