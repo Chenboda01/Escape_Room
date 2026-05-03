@@ -472,6 +472,23 @@
             border-left-color: #f46b45;
         }
 
+        .account-toggle {
+            position: fixed;
+            top: 18px;
+            right: 74px;
+            z-index: 1100;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            padding: 0;
+            background: rgba(0, 0, 0, 0.72);
+            color: #d4a55a;
+            border: 1px solid #d4a55a;
+            font-size: 1.4rem;
+            box-shadow: 0 0 18px rgba(212, 165, 90, 0.25);
+            cursor: pointer;
+        }
+
         .settings-toggle {
             position: fixed;
             top: 18px;
@@ -516,6 +533,45 @@
         .customizable-selecting { outline: 3px dashed #d4a55a !important; outline-offset: 4px; }
         .customizable-moving { cursor: move !important; touch-action: none; }
         .custom-hidden { display: none !important; }
+
+        .account-panel {
+            position: fixed;
+            top: 74px;
+            right: 18px;
+            z-index: 1100;
+            display: none;
+            width: min(330px, calc(100vw - 36px));
+            padding: 18px;
+            background: rgba(8, 12, 30, 0.96);
+            border: 1px solid rgba(212, 165, 90, 0.55);
+            border-radius: 14px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .account-panel.open { display: block; }
+        .account-panel h3 { color: #d4a55a; margin-bottom: 8px; }
+        .account-panel .account-info { color: #a0a0a0; font-size: 0.88rem; line-height: 1.6; margin-bottom: 14px; }
+        .account-panel .account-info span { color: #4cc9f0; font-weight: 700; }
+        .account-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .account-actions button { padding: 9px 10px; font-size: 0.78rem; border-radius: 7px; cursor: pointer; }
+        .btn-signout { grid-column: 1 / -1; background: rgba(255,65,108,0.15); color: #ff416c; border: 1px solid #ff416c; }
+        .btn-delete { grid-column: 1 / -1; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid #ff4444; }
+        .twofa-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 6px; }
+        .twofa-row label { color: #a0a0a0; font-size: 0.82rem; }
+        .twofa-row span { color: #4cc9f0; font-weight: 700; font-size: 0.85rem; }
+
+        #twofa-overlay {
+            position: fixed; inset: 0; z-index: 20001; display: none;
+            align-items: center; justify-content: center; padding: 28px;
+            background: radial-gradient(circle at center, rgba(15, 52, 96, 0.96), rgba(8, 10, 24, 0.99));
+        }
+
+        .twofa-card { width: min(420px, 100%); padding: 30px; border: 2px solid #d4a55a; border-radius: 18px; background: rgba(0, 0, 0, 0.72); }
+        .twofa-card h2 { color: #d4a55a; margin-bottom: 12px; font-family: Georgia, serif; }
+        .twofa-card p { color: #a0a0a0; margin-bottom: 18px; }
+        .twofa-card input { width: 100%; padding: 13px 15px; border-radius: 8px; border: 1px solid #8b7355; background: rgba(0,0,0,0.45); color: #f0e0c0; font-size: 1.2rem; text-align: center; letter-spacing: 4px; }
+        .twofa-card button { width: 100%; margin-top: 18px; background: linear-gradient(135deg, #6b4a2a, #8b7355); color: #f0e0c0; border: 1px solid #d4a55a; }
+        .twofa-error { min-height: 20px; margin-top: 10px; color: #ff416c; font-size: 0.9rem; text-align: center; }
 
         #login-overlay {
             position: fixed;
@@ -596,6 +652,7 @@
             </div>
         </header>
 
+        <button id="account-toggle" class="account-toggle" aria-label="Open account management">👤</button>
         <button id="settings-toggle" class="settings-toggle" aria-label="Open dashboard editor">⚙</button>
         <div id="customizer-panel" class="customizer-panel" aria-label="Dashboard editor">
             <h3>Dashboard Editor</h3>
@@ -609,6 +666,37 @@
             <div class="customizer-inventory">
                 <h4>Gear Inventory</h4>
                 <div id="custom-inventory"><div class="inventory-empty">Removed controls appear here.</div></div>
+            </div>
+        </div>
+
+        <div id="account-panel" class="account-panel" aria-label="Account management">
+            <h3>Account Management</h3>
+            <div class="account-info">
+                Username: <span id="account-username">—</span><br>
+                Session: <span id="account-session">—</span>
+            </div>
+            <div class="account-actions">
+                <button id="account-rename">Rename Account</button>
+                <button id="account-password">Change Password</button>
+            </div>
+            <div class="twofa-row">
+                <label>Two-Factor Auth</label>
+                <span id="account-2fa-status">OFF</span>
+                <button id="account-2fa-toggle">Enable</button>
+            </div>
+            <div class="account-actions" style="margin-top:10px;">
+                <button id="account-signout" class="btn-signout">Sign Out</button>
+                <button id="account-delete" class="btn-delete">Delete Account</button>
+            </div>
+        </div>
+
+        <div id="twofa-overlay">
+            <div class="twofa-card" id="twofa-card">
+                <h2>Two-Factor Authentication</h2>
+                <p id="twofa-label">Enter the verification code sent to your device.</p>
+                <input id="twofa-code" type="text" placeholder="000000" maxlength="6" autocomplete="off">
+                <button id="btn-twofa-submit">Verify</button>
+                <div class="twofa-error" id="twofa-error"></div>
             </div>
         </div>
         

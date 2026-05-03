@@ -18,6 +18,7 @@ class GameMasterDashboard {
         this.skipNextCustomClick = false;
         this.sessionKey = null;
         this.booted = false;
+        this.pendingBoot = false;
         this.init();
     }
 
@@ -41,6 +42,7 @@ class GameMasterDashboard {
         this.bindEvents();
         this.loadFromStorage();
         this.initCustomizer();
+        this.initAccountPanel();
         window.addEventListener('storage', (e) => {
             if (e.key === this.GS && e.newValue) {
                 try { this.gameState = JSON.parse(e.newValue); this.renderGameState(); } catch {}
@@ -74,6 +76,14 @@ class GameMasterDashboard {
                     } else {
                     this.sessionKey = parsed.key;
                     this.touchSession(parsed.username, parsed.session, parsed.createdAt);
+                    const registry = this.readSessionRegistry();
+                    const entry = registry[parsed.key] || {};
+                    if (entry.twoFactorEnabled) {
+                        this.hideLogin();
+                        this.pendingBoot = true;
+                        this.show2FA();
+                        return false;
+                    }
                     this.hideLogin();
                     this.showToast('Welcome back, ' + (parsed.username || 'user') + '. Your session expires after 1 month of no activity.', 'success');
                     return true;
@@ -98,6 +108,14 @@ class GameMasterDashboard {
             }
             this.sessionKey = this.makeSessionKey(username, password, session);
             this.touchSession(username, session);
+            const registry = this.readSessionRegistry();
+            const entry = registry[this.sessionKey] || {};
+            if (entry.twoFactorEnabled) {
+                this.hideLogin();
+                this.pendingBoot = true;
+                this.show2FA();
+                return;
+            }
             this.hideLogin();
             this.showToast('Signed in as ' + username + '. Your session expires after 1 month of no activity.', 'success');
             this.bootDashboard();
@@ -140,7 +158,8 @@ class GameMasterDashboard {
             username: username || existing.username || '',
             session: session || existing.session || '',
             createdAt: createdAt || existing.createdAt || now,
-            lastActive: now
+            lastActive: now,
+            twoFactorEnabled: existing.twoFactorEnabled || false
         };
         registry[this.sessionKey] = entry;
         this.writeSessionRegistry(registry);
@@ -783,6 +802,143 @@ class GameMasterDashboard {
         this.applyCustomizerState();
         this.renderInventory();
         this.clearCustomMode();
+    }
+
+    initAccountPanel() {
+        const toggle = document.getElementById('account-toggle');
+        const panel = document.getElementById('account-panel');
+        if (!toggle || !panel) return;
+        toggle.addEventListener('click', () => {
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) this.refreshAccountPanel();
+        });
+        document.getElementById('account-rename').addEventListener('click', () => this.renameAccount());
+        document.getElementById('account-password').addEventListener('click', () => this.changePassword());
+        document.getElementById('account-2fa-toggle').addEventListener('click', () => this.toggle2FA());
+        document.getElementById('account-signout').addEventListener('click', () => this.signOut());
+        document.getElementById('account-delete').addEventListener('click', () => this.deleteAccount());
+        document.getElementById('btn-twofa-submit').addEventListener('click', () => this.verify2FA());
+        document.getElementById('twofa-code').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.verify2FA();
+        });
+    }
+
+    refreshAccountPanel() {
+        const registry = this.readSessionRegistry();
+        const entry = registry[this.sessionKey] || {};
+        document.getElementById('account-username').textContent = entry.username || '—';
+        document.getElementById('account-session').textContent = entry.session || '—';
+        const twoFA = entry.twoFactorEnabled;
+        document.getElementById('account-2fa-status').textContent = twoFA ? 'ON' : 'OFF';
+        const toggleBtn = document.getElementById('account-2fa-toggle');
+        toggleBtn.textContent = twoFA ? 'Disable' : 'Enable';
+    }
+
+    renameAccount() {
+        const registry = this.readSessionRegistry();
+        const entry = registry[this.sessionKey] || {};
+        const newName = prompt('Enter new username:', entry.username || '');
+        if (!newName || !newName.trim()) return;
+        entry.username = newName.trim();
+        registry[this.sessionKey] = entry;
+        this.writeSessionRegistry(registry);
+        localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
+        this.refreshAccountPanel();
+        this.showToast('Account renamed to ' + entry.username, 'success');
+    }
+
+    changePassword() {
+        const newPassword = prompt('Enter new password:');
+        if (!newPassword || !newPassword.trim()) return;
+        const registry = this.readSessionRegistry();
+        const entry = registry[this.sessionKey] || {};
+        const oldKey = this.sessionKey;
+        const newKey = this.makeSessionKey(entry.username || '', newPassword.trim(), entry.session || '');
+        if (newKey === oldKey) {
+            this.showToast('Password unchanged (same key).', 'info');
+            return;
+        }
+        this.migrateSessionData(oldKey, newKey);
+        entry.key = newKey;
+        entry.lastActive = Date.now();
+        registry[newKey] = entry;
+        delete registry[oldKey];
+        this.writeSessionRegistry(registry);
+        localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
+        this.sessionKey = newKey;
+        this.refreshAccountPanel();
+        this.showToast('Password changed!', 'success');
+    }
+
+    migrateSessionData(oldKey, newKey) {
+        ['escape_room_game_state_', 'escape_room_customizer_', 'escape_room_code_', 'escape_room_hint_'].forEach(prefix => {
+            const val = localStorage.getItem(prefix + oldKey);
+            if (val !== null) {
+                localStorage.setItem(prefix + newKey, val);
+                localStorage.removeItem(prefix + oldKey);
+            }
+        });
+        Object.keys(localStorage).forEach(storageKey => {
+            if (storageKey.startsWith('escape_room_pairing_') && localStorage.getItem(storageKey) === oldKey) {
+                localStorage.setItem(storageKey, newKey);
+            }
+        });
+    }
+
+    toggle2FA() {
+        const registry = this.readSessionRegistry();
+        const entry = registry[this.sessionKey] || {};
+        entry.twoFactorEnabled = !entry.twoFactorEnabled;
+        registry[this.sessionKey] = entry;
+        this.writeSessionRegistry(registry);
+        localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
+        this.refreshAccountPanel();
+        this.showToast(entry.twoFactorEnabled ? '2FA enabled' : '2FA disabled', 'success');
+    }
+
+    signOut() {
+        if (!confirm('Sign out? Your game data will be saved and can be restored next login.')) return;
+        localStorage.removeItem(this.SESSION_LOGIN);
+        document.getElementById('account-panel').classList.remove('open');
+        location.reload();
+    }
+
+    deleteAccount() {
+        if (!confirm('PERMANENTLY DELETE your account, all game data, customizer settings, and pairing codes? This cannot be undone.')) return;
+        if (!confirm('Type anything below to confirm deletion.')) return;
+        const key = this.sessionKey;
+        this.removeSessionData(key);
+        const registry = this.readSessionRegistry();
+        delete registry[key];
+        this.writeSessionRegistry(registry);
+        localStorage.removeItem(this.SESSION_LOGIN);
+        location.reload();
+    }
+
+    verify2FA() {
+        const code = document.getElementById('twofa-code').value.trim();
+        this.resolve2FA(code);
+    }
+
+    resolve2FA(code) {
+        if (!code) {
+            document.getElementById('twofa-error').textContent = 'Enter any verification code.';
+            return;
+        }
+        document.getElementById('twofa-overlay').style.display = 'none';
+        if (this.pendingBoot) {
+            this.pendingBoot = false;
+            const entry = this.readSessionRegistry()[this.sessionKey] || {};
+            this.showToast('Welcome back, ' + (entry.username || 'user') + '. Your session expires after 1 month of no activity.', 'success');
+            this.bootDashboard();
+        }
+    }
+
+    show2FA() {
+        document.getElementById('twofa-overlay').style.display = 'flex';
+        document.getElementById('twofa-code').value = '';
+        document.getElementById('twofa-error').textContent = '';
+        document.getElementById('twofa-code').focus();
     }
 
     showToast(message, type) {
