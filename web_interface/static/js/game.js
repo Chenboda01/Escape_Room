@@ -47,12 +47,19 @@ class GameMasterDashboard {
         if (stored) {
             try {
                 this.gameState = JSON.parse(stored);
+                this.gameState.start_time = null;
+                this.gameState.game_active = false;
+                this.gameState.time_remaining = 5400;
+                this.gameState.game_complete = false;
+                this.gameState.game_over = false;
+                this.gameState.paused = false;
                 if (this.gameState.time_remaining !== undefined) {
                     this.serverTimeRemaining = this.gameState.time_remaining;
                     this.displayTimeRemaining = this.gameState.time_remaining;
                     this.timerState.gameComplete = Boolean(this.gameState.game_complete);
                     this.timerState.gameOver = Boolean(this.gameState.game_over);
                 }
+                this.saveToStorage();
                 this.renderGameState();
             } catch {}
         }
