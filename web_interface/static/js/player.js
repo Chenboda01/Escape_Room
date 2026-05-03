@@ -12,6 +12,7 @@ class PlayerScreen {
         this.disconnectGrace = null;
         this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
+        this.lastHintId = null;
         this.init();
     }
 
@@ -26,6 +27,9 @@ class PlayerScreen {
             }
             if (e.key === 'escape_room_game_state' && e.newValue && this.paired) {
                 try { this.gameState = JSON.parse(e.newValue); this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over); } catch {}
+            }
+            if (e.key === 'escape_room_hint' && e.newValue && this.paired) {
+                try { this.showHint(JSON.parse(e.newValue)); } catch {}
             }
         });
         this.connectionCheckInterval = setInterval(() => {
@@ -66,6 +70,8 @@ class PlayerScreen {
         document.getElementById('code-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.importCode();
         });
+        const closeHint = document.getElementById('btn-close-hint');
+        if (closeHint) closeHint.addEventListener('click', () => this.hideHint());
     }
 
     importCode() {
@@ -269,6 +275,21 @@ class PlayerScreen {
             el.textContent = '\u{1F535} Waiting for code';
             el.className = 'connection-status disconnected';
         }
+    }
+
+    showHint(hint) {
+        if (!hint || !hint.message || hint.id === this.lastHintId) return;
+        this.lastHintId = hint.id;
+        const overlay = document.getElementById('hint-overlay');
+        const message = document.getElementById('hint-message');
+        if (!overlay || !message) return;
+        message.textContent = hint.message;
+        overlay.style.display = 'flex';
+    }
+
+    hideHint() {
+        const overlay = document.getElementById('hint-overlay');
+        if (overlay) overlay.style.display = 'none';
     }
 
     showToast(message, type) {

@@ -242,15 +242,17 @@ class GameMasterDashboard {
     giveHint() {
         const doHint = () => {
             if (!this.gameState || this.gameState.hints_remaining <= 0) return;
+            const message = prompt('Write your message in the box below:');
+            if (!message || !message.trim()) return;
             this.gameState.hints_remaining--;
             this.gameState.hints_used = (this.gameState.hints_used || 0) + 1;
             this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
             this.saveToStorage();
-            this.showToast('Hint given! ' + this.gameState.hints_remaining + ' left', 'success');
+            localStorage.setItem('escape_room_hint', JSON.stringify({ id: Date.now(), message: message.trim() }));
+            this.showToast('Hint sent! ' + this.gameState.hints_remaining + ' left', 'success');
         };
-        this.tryServerThen('hint', null, doHint);
-        if (this.connected) return;
-        doHint();
+        if (this.connected) this.tryServerThen('hint', null, doHint);
+        else doHint();
     }
 
     wakeDragon() {

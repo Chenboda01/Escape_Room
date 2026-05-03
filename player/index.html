@@ -351,6 +351,56 @@
             display: none;
             z-index: 1000;
         }
+
+        #hint-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 30px;
+            background: radial-gradient(circle at center, rgba(15, 52, 96, 0.96), rgba(10, 10, 30, 0.98));
+        }
+
+        .hint-card {
+            width: min(900px, 100%);
+            padding: 45px;
+            border: 3px solid #d4a55a;
+            border-radius: 22px;
+            background: rgba(0, 0, 0, 0.72);
+            box-shadow: 0 0 50px rgba(212, 165, 90, 0.35), inset 0 0 40px rgba(212, 165, 90, 0.08);
+            text-align: center;
+        }
+
+        .hint-card h2 {
+            color: #d4a55a;
+            font-family: Georgia, serif;
+            font-size: 2.4rem;
+            margin-bottom: 24px;
+        }
+
+        #hint-message {
+            color: #f0e0c0;
+            font-family: Georgia, serif;
+            font-size: 2rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            margin-bottom: 34px;
+        }
+
+        #btn-close-hint {
+            padding: 14px 34px;
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            color: #f0e0c0;
+            border: 1px solid #d4a55a;
+            border-radius: 10px;
+            font-family: Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
         
         @keyframes pulse {
             0% { opacity: 1; }
@@ -428,6 +478,14 @@
         
         <div id="toast" class="toast">
             <span id="toast-message">Message</span>
+        </div>
+    </div>
+
+    <div id="hint-overlay">
+        <div class="hint-card">
+            <h2>/admin gave you a hint! Read the hint below.</h2>
+            <div id="hint-message"></div>
+            <button id="btn-close-hint">Close Hint</button>
         </div>
     </div>
     
