@@ -396,16 +396,16 @@ class GameMasterDashboard {
     giveHint() {
         const doHint = () => {
             if (!this.gameState || this.gameState.hints_remaining <= 0) return;
-            const prePromptSeconds = this.getCurrentTimerSeconds();
             const message = prompt('Write your message in the box below:');
-            if (this.isGameRunning()) {
-                const elapsed = Math.max(0, Math.floor((performance.now() - this.lastUpdateTimestamp) / 1000));
-                this.gameState.time_remaining = Math.max(0, Math.floor(prePromptSeconds - elapsed));
-            }
             if (!message || !message.trim()) return;
             this.gameState.hints_remaining--;
             this.gameState.hints_used = (this.gameState.hints_used || 0) + 1;
             this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
+            if (this.isGameRunning()) {
+                this.gameState.time_remaining = Math.floor(this.getCurrentTimerSeconds());
+                this.displayTimeRemaining = this.gameState.time_remaining;
+                this.lastUpdateTimestamp = performance.now();
+            }
             this.saveToStorage();
             localStorage.setItem(this.HINT, JSON.stringify({ id: Date.now(), message: message.trim() }));
             this.showToast('Hint sent! ' + this.gameState.hints_remaining + ' left', 'success');
@@ -718,14 +718,14 @@ class GameMasterDashboard {
 
         const id = el.dataset.customId;
         if (this.customMode === 'rename') {
-            const prePromptSeconds = this.getCurrentTimerSeconds();
             const label = prompt('Rename this item:', el.textContent.trim());
-            if (this.isGameRunning()) {
-                const elapsed = Math.max(0, Math.floor((performance.now() - this.lastUpdateTimestamp) / 1000));
-                this.gameState.time_remaining = Math.max(0, Math.floor(prePromptSeconds - elapsed));
-            }
             if (!label || !label.trim()) return;
             this.customState.labels[id] = label.trim();
+            if (this.isGameRunning()) {
+                this.gameState.time_remaining = Math.floor(this.getCurrentTimerSeconds());
+                this.displayTimeRemaining = this.gameState.time_remaining;
+                this.lastUpdateTimestamp = performance.now();
+            }
             this.saveCustomizerState();
             this.applyCustomizerState();
             this.showToast('Renamed', 'success');
