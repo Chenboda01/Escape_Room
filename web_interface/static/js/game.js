@@ -43,6 +43,7 @@ class GameMasterDashboard {
         this.loadFromStorage();
         this.initCustomizer();
         this.initAccountPanel();
+        this.startTimeSync();
         window.addEventListener('storage', (e) => {
             if (e.key === this.GS && e.newValue) {
                 try { this.gameState = JSON.parse(e.newValue); this.renderGameState(); } catch {}
@@ -552,6 +553,17 @@ class GameMasterDashboard {
     updateHints(remaining, used) {
         document.getElementById('hints-remaining').textContent = remaining || 0;
         document.getElementById('hints-used').textContent = used || 0;
+    }
+
+    startTimeSync() {
+        this._timeSyncInterval = setInterval(() => {
+            if (!this.isGameRunning() || !this.gameState) return;
+            const now = Math.floor(this.getCurrentTimerSeconds());
+            if (this.gameState.time_remaining !== now) {
+                this.gameState.time_remaining = now;
+                this.saveToStorage();
+            }
+        }, 1000);
     }
 
     renderGameState() {
