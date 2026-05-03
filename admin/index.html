@@ -516,6 +516,42 @@
         .customizable-selecting { outline: 3px dashed #d4a55a !important; outline-offset: 4px; }
         .customizable-moving { cursor: move !important; touch-action: none; }
         .custom-hidden { display: none !important; }
+
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: radial-gradient(circle at center, rgba(15, 52, 96, 0.96), rgba(8, 10, 24, 0.99));
+        }
+
+        .login-card {
+            width: min(520px, 100%);
+            padding: 36px;
+            border: 2px solid #d4a55a;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.72);
+            box-shadow: 0 0 45px rgba(212, 165, 90, 0.28);
+        }
+
+        .login-card h2 { color: #d4a55a; margin-bottom: 12px; font-family: Georgia, serif; }
+        .login-card p { color: #a0a0a0; margin-bottom: 22px; line-height: 1.5; }
+        .login-card label { display: block; color: #4cc9f0; margin: 14px 0 6px; font-weight: 700; }
+        .login-card input {
+            width: 100%;
+            padding: 13px 15px;
+            border-radius: 8px;
+            border: 1px solid #8b7355;
+            background: rgba(0, 0, 0, 0.45);
+            color: #f0e0c0;
+            font-size: 1rem;
+        }
+
+        #btn-login-session { width: 100%; margin-top: 22px; background: linear-gradient(135deg, #6b4a2a, #8b7355); color: #f0e0c0; border: 1px solid #d4a55a; }
+        #login-error { min-height: 20px; margin-top: 12px; color: #ff416c; font-size: 0.9rem; }
         
         @media (max-width: 768px) {
             .rooms {
@@ -530,6 +566,21 @@
 </head>
 <body>
     <div class="container">
+        <div id="login-overlay">
+            <form id="login-form" class="login-card">
+                <h2>Sign In To Start A Session</h2>
+                <p>Use any made-up username and password. This separates your game from other sessions on this browser.</p>
+                <label for="login-username">Username</label>
+                <input id="login-username" type="text" autocomplete="username" required>
+                <label for="login-password">Password</label>
+                <input id="login-password" type="password" autocomplete="current-password" required>
+                <label for="login-session">Session Name</label>
+                <input id="login-session" type="text" placeholder="Example: Session 1" required>
+                <button id="btn-login-session" type="submit">Enter Admin</button>
+                <div id="login-error"></div>
+            </form>
+        </div>
+
         <header>
             <div class="logo">
                 <h1>Kingdom Magic: The Dragon's Fortress</h1>

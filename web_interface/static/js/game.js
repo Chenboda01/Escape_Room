@@ -16,13 +16,25 @@ class GameMasterDashboard {
         this.customState = { labels: {}, positions: {}, removed: {} };
         this.dragState = null;
         this.skipNextCustomClick = false;
+        this.sessionKey = null;
+        this.booted = false;
         this.init();
     }
 
-    get GS() { return 'escape_room_game_state'; }
-    get CS() { return 'escape_room_customizer'; }
+    get SESSION_LOGIN() { return 'escape_room_admin_login'; }
+    get GS() { return this.sessionKey ? 'escape_room_game_state_' + this.sessionKey : 'escape_room_game_state'; }
+    get CS() { return this.sessionKey ? 'escape_room_customizer_' + this.sessionKey : 'escape_room_customizer'; }
+    get CODE() { return this.sessionKey ? 'escape_room_code_' + this.sessionKey : 'escape_room_code'; }
+    get HINT() { return this.sessionKey ? 'escape_room_hint_' + this.sessionKey : 'escape_room_hint'; }
 
     init() {
+        if (!this.initLogin()) return;
+        this.bootDashboard();
+    }
+
+    bootDashboard() {
+        if (this.booted) return;
+        this.booted = true;
         this.connectWebSocket();
         this.bindEvents();
         this.loadFromStorage();
@@ -46,6 +58,50 @@ class GameMasterDashboard {
                 } catch {}
             }
         }, 2000);
+    }
+
+    initLogin() {
+        const stored = localStorage.getItem(this.SESSION_LOGIN);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.key) {
+                    this.sessionKey = parsed.key;
+                    this.hideLogin();
+                    return true;
+                }
+            } catch {}
+        }
+
+        const overlay = document.getElementById('login-overlay');
+        const form = document.getElementById('login-form');
+        if (!overlay || !form) return true;
+        overlay.style.display = 'flex';
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const session = document.getElementById('login-session').value.trim();
+            const error = document.getElementById('login-error');
+            if (!username || !password || !session) {
+                if (error) error.textContent = 'Fill in username, password, and session name.';
+                return;
+            }
+            this.sessionKey = this.makeSessionKey(username, password, session);
+            localStorage.setItem(this.SESSION_LOGIN, JSON.stringify({ key: this.sessionKey, username, session }));
+            this.hideLogin();
+            this.bootDashboard();
+        });
+        return false;
+    }
+
+    hideLogin() {
+        const overlay = document.getElementById('login-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    makeSessionKey(username, password, session) {
+        return [username, password, session].join('|').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'default';
     }
 
     loadFromStorage() {
@@ -206,9 +262,8 @@ class GameMasterDashboard {
             this.saveToStorage();
             this.showToast('Game started!', 'success');
         };
-        this.tryServerThen('start', null, doStart);
-        if (this.connected) return;
-        doStart();
+        if (this.connected) this.tryServerThen('start', null, doStart);
+        else doStart();
     }
 
     resetGame() {
@@ -225,9 +280,8 @@ class GameMasterDashboard {
             this.saveToStorage();
             this.showToast('Game reset', 'warning');
         };
-        this.tryServerThen('reset', null, doReset);
-        if (this.connected) return;
-        doReset();
+        if (this.connected) this.tryServerThen('reset', null, doReset);
+        else doReset();
     }
 
     solvePuzzle(roomId, puzzleId) {
@@ -240,9 +294,8 @@ class GameMasterDashboard {
             this.saveToStorage();
             this.showToast('Puzzle solved! ' + puzzle.name, 'success');
         };
-        this.tryServerThen('puzzle/solve', { room_id: roomId, puzzle_id: puzzleId }, doSolve);
-        if (this.connected) return;
-        doSolve();
+        if (this.connected) this.tryServerThen('puzzle/solve', { room_id: roomId, puzzle_id: puzzleId }, doSolve);
+        else doSolve();
     }
 
     giveHint() {
@@ -254,7 +307,7 @@ class GameMasterDashboard {
             this.gameState.hints_used = (this.gameState.hints_used || 0) + 1;
             this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
             this.saveToStorage();
-            localStorage.setItem('escape_room_hint', JSON.stringify({ id: Date.now(), message: message.trim() }));
+            localStorage.setItem(this.HINT, JSON.stringify({ id: Date.now(), message: message.trim() }));
             this.showToast('Hint sent! ' + this.gameState.hints_remaining + ' left', 'success');
         };
         if (this.connected) this.tryServerThen('hint', null, doHint);
@@ -269,9 +322,8 @@ class GameMasterDashboard {
             this.saveToStorage();
             this.showToast('Dragon woke up!', 'warning');
         };
-        this.tryServerThen('dragon/wake', null, doWake);
-        if (this.connected) return;
-        doWake();
+        if (this.connected) this.tryServerThen('dragon/wake', null, doWake);
+        else doWake();
     }
 
     calmDragon() {
@@ -282,9 +334,8 @@ class GameMasterDashboard {
             this.saveToStorage();
             this.showToast('Dragon calmed down', 'success');
         };
-        this.tryServerThen('dragon/calm', null, doCalm);
-        if (this.connected) return;
-        doCalm();
+        if (this.connected) this.tryServerThen('dragon/calm', null, doCalm);
+        else doCalm();
     }
 
     uploadVideo() {
@@ -314,6 +365,8 @@ class GameMasterDashboard {
     generateCode() {
         const code = Math.random().toString(36).substring(2, 8);
         localStorage.setItem('escape_room_code', code);
+        localStorage.setItem(this.CODE, code);
+        localStorage.setItem('escape_room_pairing_' + code, this.sessionKey || 'default');
         this.localConnected = true;
         this.gameState = this.buildDefaultState();
         this.timerState = { gameComplete: false, gameOver: false };

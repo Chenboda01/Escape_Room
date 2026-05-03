@@ -13,8 +13,12 @@ class PlayerScreen {
         this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
         this.lastHintId = null;
+        this.sessionKey = null;
         this.init();
     }
+
+    get GS() { return this.sessionKey ? 'escape_room_game_state_' + this.sessionKey : 'escape_room_game_state'; }
+    get HINT() { return this.sessionKey ? 'escape_room_hint_' + this.sessionKey : 'escape_room_hint'; }
 
     init() {
         this.connectWebSocket();
@@ -25,17 +29,17 @@ class PlayerScreen {
                 document.getElementById('code-input').value = e.newValue;
                 this.showToast('Code received: ' + e.newValue, 'success');
             }
-            if (e.key === 'escape_room_game_state' && e.newValue && this.paired) {
+            if (e.key === this.GS && e.newValue && this.paired) {
                 try { this.gameState = JSON.parse(e.newValue); this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over); } catch {}
             }
-            if (e.key === 'escape_room_hint' && e.newValue && this.paired) {
+            if (e.key === this.HINT && e.newValue && this.paired) {
                 try { this.showHint(JSON.parse(e.newValue)); } catch {}
             }
         });
         this.connectionCheckInterval = setInterval(() => {
             if (!this.connected) this.checkConnection();
             if (this.paired) {
-                const stored = localStorage.getItem('escape_room_game_state');
+                const stored = localStorage.getItem(this.GS);
                 if (stored) {
                     try {
                         const parsed = JSON.parse(stored);
@@ -78,7 +82,10 @@ class PlayerScreen {
         const input = document.getElementById('code-input');
         const code = input.value.trim().toLowerCase();
         if (!code) return;
+        const sessionKey = localStorage.getItem('escape_room_pairing_' + code);
+        if (!sessionKey) { this.showToast('Code not found. Generate a code on /admin first.', 'error'); return; }
 
+        this.sessionKey = sessionKey;
         this.paired = true;
         this.showGameUI();
         this.updateConnectionStatus();
