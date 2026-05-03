@@ -473,7 +473,7 @@ class GameMasterDashboard {
 
         toggle.addEventListener('click', () => {
             panel.classList.toggle('open');
-            if (!panel.classList.contains('open')) this.setCustomMode(null);
+            if (!panel.classList.contains('open')) this.clearCustomMode();
             this.renderInventory();
         });
         document.getElementById('custom-rename').addEventListener('click', () => this.setCustomMode('rename'));
@@ -538,10 +538,22 @@ class GameMasterDashboard {
 
     setCustomMode(mode) {
         this.customMode = this.customMode === mode ? null : mode;
+        if (!this.customMode) { this.clearCustomMode(); return; }
         document.querySelectorAll('#customizer-panel .customizer-actions button').forEach(btn => btn.classList.remove('active'));
         if (this.customMode) document.getElementById('custom-' + this.customMode).classList.add('active');
         this.customizableElements().forEach(el => el.classList.toggle('customizable-selecting', Boolean(this.customMode)));
         this.showToast(this.customMode ? 'Editor mode: ' + this.customMode : 'Editor mode off', 'info');
+    }
+
+    clearCustomMode() {
+        this.customMode = null;
+        this.dragState = null;
+        this.skipNextCustomClick = false;
+        document.querySelectorAll('#customizer-panel .customizer-actions button').forEach(btn => btn.classList.remove('active'));
+        this.customizableElements().forEach(el => {
+            el.classList.remove('customizable-selecting');
+            el.classList.remove('customizable-moving');
+        });
     }
 
     handleCustomClick(e) {
@@ -641,7 +653,7 @@ class GameMasterDashboard {
         this.saveCustomizerState();
         this.applyCustomizerState();
         this.renderInventory();
-        this.setCustomMode(null);
+        this.clearCustomMode();
     }
 
     showToast(message, type) {
