@@ -339,6 +339,58 @@
             margin-top: 15px;
         }
 
+        .game-log-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #0f3460;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .game-log-panel h3 {
+            color: #4cc9f0;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        #game-log-list {
+            max-height: 200px;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #game-log-list li {
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.95rem;
+            color: #c0c0c0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #game-log-list li:last-child { border-bottom: none; }
+
+        #game-log-list .log-time {
+            color: #7a7a7a;
+            font-family: monospace;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+
+        #game-log-list .log-action { color: #4cc9f0; font-weight: 600; }
+        #game-log-list .log-action.log-success { color: #00b09b; }
+        #game-log-list .log-action.log-warning { color: #f46b45; }
+        #game-log-list .log-action.log-danger { color: #ff416c; }
+        #game-log-list .log-detail { color: #a0a0a0; }
+
+        .log-empty { color: #555; font-style: italic; font-size: 0.85rem; text-align: center; }
+
         .toast {
             position: fixed;
             bottom: 80px;
@@ -361,6 +413,45 @@
             z-index: 10000;
             padding: 30px;
             background: radial-gradient(circle at center, rgba(15, 52, 96, 0.96), rgba(10, 10, 30, 0.98));
+        }
+
+
+        #warning-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            padding: 30px;
+            cursor: pointer;
+            background: radial-gradient(circle at center, rgba(180, 30, 30, 0.95), rgba(80, 5, 5, 0.98));
+        }
+
+        .warning-card {
+            width: min(900px, 100%);
+            padding: 50px;
+            border: 4px solid #e94560;
+            border-radius: 24px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 60px rgba(233, 69, 96, 0.5), inset 0 0 40px rgba(233, 69, 96, 0.1);
+            text-align: center;
+            animation: warningPulse 1.5s ease-in-out infinite;
+        }
+
+        #warning-message {
+            color: #fff;
+            font-family: Georgia, serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.8);
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         .hint-card {
@@ -460,6 +551,11 @@
                 <div id="game-status-sub">Game not started</div>
             </div>
             
+            <div class="game-log-panel">
+                <h3>Game Log</h3>
+                <ul id="game-log-list"><li class="log-empty">No events yet</li></ul>
+            </div>
+
             <div class="video-section" id="video-section">
                 <div class="video-label">Introduction Video</div>
                 <div id="video-player">
@@ -486,6 +582,12 @@
             <h2>/admin gave you a hint! Read the hint below.</h2>
             <div id="hint-message"></div>
             <button id="btn-close-hint">Close Hint</button>
+        </div>
+    </div>
+
+    <div id="warning-overlay">
+        <div class="warning-card">
+            <div id="warning-message"></div>
         </div>
     </div>
     

@@ -19,6 +19,7 @@ class GameMasterDashboard {
         this.sessionKey = null;
         this.booted = false;
         this.pendingBoot = false;
+        this.summaryShown = false;
         this.init();
     }
 
@@ -29,6 +30,12 @@ class GameMasterDashboard {
     get CS() { return this.sessionKey ? 'escape_room_customizer_' + this.sessionKey : 'escape_room_customizer'; }
     get CODE() { return this.sessionKey ? 'escape_room_code_' + this.sessionKey : 'escape_room_code'; }
     get HINT() { return this.sessionKey ? 'escape_room_hint_' + this.sessionKey : 'escape_room_hint'; }
+
+    getTimerDuration() {
+        const el = document.getElementById('timer-duration');
+        const val = el ? parseInt(el.value, 10) : 90;
+        return (val > 0 && val <= 999) ? val : 90;
+    }
 
     init() {
         if (!this.initLogin()) return;
@@ -209,7 +216,7 @@ class GameMasterDashboard {
                 } else {
                     this.gameState.start_time = null;
                     this.gameState.game_active = false;
-                    this.gameState.time_remaining = 5400;
+                    this.gameState.time_remaining = this.getTimerDuration() * 60;
                     this.gameState.game_complete = false;
                     this.gameState.game_over = false;
                     this.gameState.paused = false;
@@ -230,6 +237,39 @@ class GameMasterDashboard {
         if (this.gameState) localStorage.setItem(this.GS, JSON.stringify(this.gameState));
         this.touchSession();
     }
+    logEvent(action, detail) {
+        if (!this.gameState) return;
+        if (!this.gameState.game_log) this.gameState.game_log = [];
+        const entry = {
+            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            action: action,
+            detail: detail
+        };
+        this.gameState.game_log.push(entry);
+        this.saveToStorage();
+        this.renderGameLog();
+    }
+
+    renderGameLog() {
+        const list = document.getElementById('game-log-list');
+        if (!list) return;
+        const log = (this.gameState && this.gameState.game_log) ? this.gameState.game_log : [];
+        if (!log.length) {
+            list.innerHTML = '<li class="log-empty">No events yet</li>';
+            return;
+        }
+        let html = '';
+        for (let i = log.length - 1; i >= 0; i--) {
+            const e = log[i];
+            let cls = '';
+            if (e.action.includes('solved') || e.action.includes('unlocked') || e.action.includes('calmed') || e.action.includes('complete')) cls = 'log-success';
+            else if (e.action.includes('woke') || e.action.includes('up')) cls = 'log-danger';
+            else if (e.action.includes('hint')) cls = 'log-warning';
+            html += '<li><span class="log-time">' + e.time + '</span><span class="log-action ' + cls + '">' + e.action + '</span><span class="log-detail">' + e.detail + '</span></li>';
+        }
+        list.innerHTML = html;
+    }
+
 
     buildDefaultState() {
         const rooms = {
@@ -266,13 +306,15 @@ class GameMasterDashboard {
                 }
             }
         };
+        const duration = this.getTimerDuration() * 60;
         return {
             game_id: 'local_' + Date.now(),
-            start_time: null, end_time: null, time_remaining: 5400,
+            start_time: null, end_time: null, time_remaining: duration,
             game_active: false,
             hints_remaining: 5, hints_used: 0,
             game_complete: false, game_over: false, paused: false,
-            current_room: 'room1', rooms: rooms
+            current_room: 'room1', rooms: rooms,
+            game_log: []
         };
     }
 
@@ -336,6 +378,8 @@ class GameMasterDashboard {
         document.getElementById('btn-upload-video').addEventListener('click', () => this.uploadVideo());
         document.getElementById('btn-start-video').addEventListener('click', () => this.startVideoOnPlayers());
         document.getElementById('btn-generate-code').addEventListener('click', () => this.generateCode());
+        const btnCloseSummary = document.getElementById('btn-summary-close');
+        if (btnCloseSummary) btnCloseSummary.addEventListener('click', () => this.closeSummary());
     }
 
     tryServerThen(method, body, fallback) {
@@ -348,15 +392,19 @@ class GameMasterDashboard {
         const doStart = () => {
             if (!this.gameState) this.gameState = this.buildDefaultState();
             this.gameState.start_time = Date.now() / 1000;
-            this.gameState.time_remaining = 5400;
+            this.gameState.time_remaining = this.getTimerDuration() * 60;
             this.gameState.game_active = true;
             this.gameState.game_complete = false;
             this.gameState.game_over = false;
             this.timerState = { gameComplete: false, gameOver: false };
+            this._loggedComplete = false;
+            this._loggedTimeUp = false;
+            this.summaryShown = false;
             this.syncTimer(this.gameState.time_remaining, false, false);
             this.renderGameState();
             this.saveToStorage();
             this.showToast('Game started!', 'success');
+            this.logEvent('Game Started', 'Timer set to ' + this.getTimerDuration() + ' minutes');
         };
         if (this.connected) this.tryServerThen('start', null, doStart);
         else doStart();
@@ -367,14 +415,16 @@ class GameMasterDashboard {
         const doReset = () => {
             this.gameState = this.buildDefaultState();
             this.timerState = { gameComplete: false, gameOver: false };
-            this.serverTimeRemaining = 5400;
-            this.displayTimeRemaining = 5400;
+            const dur = this.getTimerDuration() * 60;
+            this.serverTimeRemaining = dur;
+            this.displayTimeRemaining = dur;
             this.lastUpdateTimestamp = null;
             this.stopLocalTimer();
-            this.updateTimer(5400, false, false);
+            this.updateTimer(dur, false, false);
             this.renderGameState();
             this.saveToStorage();
             this.showToast('Game reset', 'warning');
+            this.logEvent('Game Reset', 'All progress cleared');
         };
         if (this.connected) this.tryServerThen('reset', null, doReset);
         else doReset();
@@ -389,6 +439,7 @@ class GameMasterDashboard {
             this.renderGameState();
             this.saveToStorage();
             this.showToast('Puzzle solved! ' + puzzle.name, 'success');
+            this.logEvent('Puzzle Solved', roomId.replace('room', 'Room ') + ' - ' + puzzle.name);
         };
         if (this.connected) this.tryServerThen('puzzle/solve', { room_id: roomId, puzzle_id: puzzleId }, doSolve);
         else doSolve();
@@ -410,6 +461,7 @@ class GameMasterDashboard {
             this.saveToStorage();
             localStorage.setItem(this.HINT, JSON.stringify({ id: Date.now(), message: message.trim() }));
             this.showToast('Hint sent! ' + this.gameState.hints_remaining + ' left', 'success');
+            this.logEvent('Hint Given', this.gameState.hints_remaining + ' hints remaining');
         };
         if (this.connected) this.tryServerThen('hint', null, doHint);
         else doHint();
@@ -422,6 +474,7 @@ class GameMasterDashboard {
             document.getElementById('dragon-alert').style.display = 'block';
             this.saveToStorage();
             this.showToast('Dragon woke up!', 'warning');
+            this.logEvent('Dragon Woke', 'Dragon in Room 3 is awake!');
         };
         if (this.connected) this.tryServerThen('dragon/wake', null, doWake);
         else doWake();
@@ -434,6 +487,7 @@ class GameMasterDashboard {
             document.getElementById('dragon-alert').style.display = 'none';
             this.saveToStorage();
             this.showToast('Dragon calmed down', 'success');
+            this.logEvent('Dragon Calmed', 'Dragon in Room 3 is calm');
         };
         if (this.connected) this.tryServerThen('dragon/calm', null, doCalm);
         else doCalm();
@@ -471,11 +525,12 @@ class GameMasterDashboard {
         this.localConnected = true;
         this.gameState = this.buildDefaultState();
         this.timerState = { gameComplete: false, gameOver: false };
-        this.serverTimeRemaining = 5400;
-        this.displayTimeRemaining = 5400;
+        const dur = this.getTimerDuration() * 60;
+        this.serverTimeRemaining = dur;
+        this.displayTimeRemaining = dur;
         this.lastUpdateTimestamp = null;
         this.stopLocalTimer();
-        this.updateTimer(5400, false, false);
+        this.updateTimer(dur, false, false);
         this.renderGameState();
         this.saveToStorage();
         document.getElementById('pairing-code').textContent = code;
@@ -535,6 +590,8 @@ class GameMasterDashboard {
         const safe = Math.max(0, Math.floor(secondsRemaining));
         const key = safe + ':' + gameComplete + ':' + gameOver + ':' + this.isGameRunning();
         if (this.lastRenderedTimerKey === key) return;
+        if (gameComplete && !this._loggedComplete) { this._loggedComplete = true; this.logEvent('Game Complete', 'Players escaped the fortress!'); }
+        if (gameOver && !this._loggedTimeUp) { this._loggedTimeUp = true; this.logEvent("Time's Up", 'Game over - time ran out'); }
         this.lastRenderedTimerKey = key;
         document.getElementById('time-remaining').textContent =
             String(Math.floor(safe / 60)).padStart(2, '0') + ':' + String(Math.floor(safe % 60)).padStart(2, '0');
@@ -548,6 +605,55 @@ class GameMasterDashboard {
         if (safe < 300) { te.style.color = '#ff416c'; te.style.animation = safe < 60 ? 'pulse 1s infinite' : 'none'; }
         else if (safe < 900) { te.style.color = '#f46b45'; te.style.animation = 'none'; }
         else { te.style.color = '#e94560'; te.style.animation = 'none'; }
+        if ((gameComplete || gameOver) && !this.summaryShown) {
+            this.summaryShown = true;
+            this.showGameSummary(gameComplete, safe);
+        }
+    }
+
+    showGameSummary(escaped, elapsedSeconds) {
+        const overlay = document.getElementById('summary-overlay');
+        if (!overlay) return;
+        const totalDuration = 5400;
+        const elapsed = totalDuration - elapsedSeconds;
+        const elapsedMin = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const elapsedSec = String(Math.floor(elapsed % 60)).padStart(2, '0');
+        document.getElementById('summary-time').textContent = elapsedMin + ':' + elapsedSec;
+        if (escaped) {
+            document.getElementById('summary-title').textContent = 'Escaped!';
+            document.getElementById('summary-title').style.color = '#00b09b';
+            document.getElementById('summary-subtitle').textContent = 'Players escaped the fortress!';
+        } else {
+            document.getElementById('summary-title').textContent = "Time's Up!";
+            document.getElementById('summary-title').style.color = '#ff416c';
+            document.getElementById('summary-subtitle').textContent = 'The dragon has awakened.';
+        }
+        const hintsUsed = this.gameState ? (this.gameState.hints_used || 0) : 0;
+        document.getElementById('summary-hints').textContent = hintsUsed;
+        const solvedPuzzles = [];
+        let totalPuzzles = 0;
+        if (this.gameState && this.gameState.rooms) {
+            Object.values(this.gameState.rooms).forEach(room => {
+                Object.values(room.puzzles).forEach(p => {
+                    totalPuzzles++;
+                    if (p.status === 'solved') solvedPuzzles.push(p.name);
+                });
+            });
+        }
+        document.getElementById('summary-puzzles-count').textContent = solvedPuzzles.length + ' / ' + totalPuzzles;
+        const listEl = document.getElementById('summary-puzzles-list');
+        if (solvedPuzzles.length > 0) {
+            listEl.innerHTML = solvedPuzzles.map(n => '<li>' + n + '</li>').join('');
+        } else {
+            listEl.innerHTML = '<div class="summary-puzzles-empty">No puzzles solved</div>';
+        }
+        document.getElementById('summary-state').textContent = escaped ? 'Escaped' : "Time's Up";
+        overlay.classList.add('show');
+    }
+
+    closeSummary() {
+        const overlay = document.getElementById('summary-overlay');
+        if (overlay) overlay.classList.remove('show');
     }
 
     updateHints(remaining, used) {

@@ -13,6 +13,8 @@ class PlayerScreen {
         this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
         this.lastHintId = null;
+        this.shownWarnings = new Set();
+        this.warningDismissTimeout = null;
         this.sessionKey = null;
         this.init();
     }
@@ -46,6 +48,7 @@ class PlayerScreen {
                         if (JSON.stringify(parsed) !== JSON.stringify(this.gameState)) {
                             this.gameState = parsed;
                             this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over);
+                            this.renderGameLog();
                         }
                     } catch {}
                 }
@@ -76,6 +79,9 @@ class PlayerScreen {
         });
         const closeHint = document.getElementById('btn-close-hint');
         if (closeHint) closeHint.addEventListener('click', () => this.hideHint());
+
+        const warningOverlay = document.getElementById('warning-overlay');
+        if (warningOverlay) warningOverlay.addEventListener('click', () => this.hideWarning());
     }
 
     importCode() {
@@ -198,6 +204,7 @@ class PlayerScreen {
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
         if (this.shouldRunLocalTimer()) this.startLocalTimer();
         else this.stopLocalTimer();
+        this.renderGameLog();
     }
 
     isGameRunning() {
@@ -270,6 +277,46 @@ class PlayerScreen {
         } else {
             timeEl.style.color = '#e94560';
         }
+
+        this.checkTimerWarning(safe);
+    }
+
+    checkTimerWarning(seconds) {
+        const thresholds = [
+            { time: 30 * 60, label: "\u26A0\uFE0F  30 minutes remaining!" },
+            { time: 10 * 60, label: "\u26A0\uFE0F  10 minutes remaining! Hurry!" },
+            { time:  5 * 60, label: "\u26A0\uFE0F  5 minutes! The dragon is stirring!" },
+            { time: 60,      label: "\u26A0\uFE0F  1 MINUTE LEFT! THE DRAGON WAKES!" },
+        ];
+
+        for (const t of thresholds) {
+            if (seconds <= t.time && !this.shownWarnings.has(t.time)) {
+                this.shownWarnings.add(t.time);
+                this.showWarning(t.label);
+                return;
+            }
+        }
+    }
+
+    showWarning(message) {
+        const overlay = document.getElementById('warning-overlay');
+        const msg = document.getElementById('warning-message');
+        if (!overlay || !msg) return;
+
+        msg.textContent = message;
+        overlay.style.display = 'flex';
+
+        if (this.warningDismissTimeout) clearTimeout(this.warningDismissTimeout);
+        this.warningDismissTimeout = setTimeout(() => this.hideWarning(), 4000);
+    }
+
+    hideWarning() {
+        const overlay = document.getElementById('warning-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (this.warningDismissTimeout) {
+            clearTimeout(this.warningDismissTimeout);
+            this.warningDismissTimeout = null;
+        }
     }
 
     updateConnectionStatus() {
@@ -310,6 +357,29 @@ class PlayerScreen {
         else toast.style.backgroundColor = 'rgba(0,0,0,0.9)';
         toast.style.display = 'block';
         setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+    renderGameLog() {
+        const list = document.getElementById('game-log-list');
+        if (!list) return;
+        if (!this.gameState || !this.gameState.game_log) {
+            list.innerHTML = '<li class="log-empty">No events yet</li>';
+            return;
+        }
+        const log = this.gameState.game_log;
+        if (!log.length) {
+            list.innerHTML = '<li class="log-empty">No events yet</li>';
+            return;
+        }
+        let html = '';
+        for (let i = log.length - 1; i >= 0; i--) {
+            const e = log[i];
+            let cls = '';
+            if (e.action.includes('solved') || e.action.includes('unlocked') || e.action.includes('calmed') || e.action.includes('complete')) cls = 'log-success';
+            else if (e.action.includes('woke') || e.action.includes('up')) cls = 'log-danger';
+            else if (e.action.includes('Hint')) cls = 'log-warning';
+            html += '<li><span class="log-time">' + e.time + '</span><span class="log-action ' + cls + '">' + e.action + '</span><span class="log-detail">' + e.detail + '</span></li>';
+        }
+        list.innerHTML = html;
     }
 }
 
