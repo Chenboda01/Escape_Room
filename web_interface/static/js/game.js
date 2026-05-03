@@ -75,6 +75,7 @@ class GameMasterDashboard {
                     this.sessionKey = parsed.key;
                     this.touchSession(parsed.username, parsed.session, parsed.createdAt);
                     this.hideLogin();
+                    this.showToast('Welcome back, ' + (parsed.username || 'user') + '. Your session expires after 1 month of no activity.', 'success');
                     return true;
                     }
                 }
@@ -98,6 +99,7 @@ class GameMasterDashboard {
             this.sessionKey = this.makeSessionKey(username, password, session);
             this.touchSession(username, session);
             this.hideLogin();
+            this.showToast('Signed in as ' + username + '. Your session expires after 1 month of no activity.', 'success');
             this.bootDashboard();
         });
         return false;
