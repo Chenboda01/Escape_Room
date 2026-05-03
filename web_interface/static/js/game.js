@@ -22,6 +22,8 @@ class GameMasterDashboard {
     }
 
     get SESSION_LOGIN() { return 'escape_room_admin_login'; }
+    get SESSION_REGISTRY() { return 'escape_room_sessions'; }
+    get SESSION_MAX_AGE() { return 30 * 24 * 60 * 60 * 1000; }
     get GS() { return this.sessionKey ? 'escape_room_game_state_' + this.sessionKey : 'escape_room_game_state'; }
     get CS() { return this.sessionKey ? 'escape_room_customizer_' + this.sessionKey : 'escape_room_customizer'; }
     get CODE() { return this.sessionKey ? 'escape_room_code_' + this.sessionKey : 'escape_room_code'; }
@@ -61,14 +63,20 @@ class GameMasterDashboard {
     }
 
     initLogin() {
+        this.cleanupExpiredSessions();
         const stored = localStorage.getItem(this.SESSION_LOGIN);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
                 if (parsed && parsed.key) {
+                    if (this.isExpired(parsed.lastActive || parsed.createdAt || 0)) {
+                        localStorage.removeItem(this.SESSION_LOGIN);
+                    } else {
                     this.sessionKey = parsed.key;
+                    this.touchSession(parsed.username, parsed.session, parsed.createdAt);
                     this.hideLogin();
                     return true;
+                    }
                 }
             } catch {}
         }
@@ -88,7 +96,7 @@ class GameMasterDashboard {
                 return;
             }
             this.sessionKey = this.makeSessionKey(username, password, session);
-            localStorage.setItem(this.SESSION_LOGIN, JSON.stringify({ key: this.sessionKey, username, session }));
+            this.touchSession(username, session);
             this.hideLogin();
             this.bootDashboard();
         });
@@ -101,7 +109,72 @@ class GameMasterDashboard {
     }
 
     makeSessionKey(username, password, session) {
-        return [username, password, session].join('|').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'default';
+        const source = [username, password, session].join('|').toLowerCase();
+        let hash = 0;
+        for (let i = 0; i < source.length; i++) hash = ((hash << 5) - hash + source.charCodeAt(i)) | 0;
+        return 'session-' + Math.abs(hash).toString(36);
+    }
+
+    isExpired(timestamp) {
+        return !timestamp || Date.now() - Number(timestamp) > this.SESSION_MAX_AGE;
+    }
+
+    readSessionRegistry() {
+        try { return JSON.parse(localStorage.getItem(this.SESSION_REGISTRY) || '{}'); }
+        catch { return {}; }
+    }
+
+    writeSessionRegistry(registry) {
+        localStorage.setItem(this.SESSION_REGISTRY, JSON.stringify(registry));
+    }
+
+    touchSession(username, session, createdAt) {
+        if (!this.sessionKey) return;
+        const now = Date.now();
+        const registry = this.readSessionRegistry();
+        const existing = registry[this.sessionKey] || {};
+        const entry = {
+            key: this.sessionKey,
+            username: username || existing.username || '',
+            session: session || existing.session || '',
+            createdAt: createdAt || existing.createdAt || now,
+            lastActive: now
+        };
+        registry[this.sessionKey] = entry;
+        this.writeSessionRegistry(registry);
+        localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
+    }
+
+    cleanupExpiredSessions() {
+        const registry = this.readSessionRegistry();
+        let changed = false;
+        Object.keys(registry).forEach(key => {
+            if (!this.isExpired(registry[key].lastActive || registry[key].createdAt)) return;
+            this.removeSessionData(key);
+            delete registry[key];
+            changed = true;
+        });
+        if (changed) this.writeSessionRegistry(registry);
+
+        const current = localStorage.getItem(this.SESSION_LOGIN);
+        if (current) {
+            try {
+                const parsed = JSON.parse(current);
+                if (parsed && this.isExpired(parsed.lastActive || parsed.createdAt)) localStorage.removeItem(this.SESSION_LOGIN);
+            } catch { localStorage.removeItem(this.SESSION_LOGIN); }
+        }
+    }
+
+    removeSessionData(key) {
+        localStorage.removeItem('escape_room_game_state_' + key);
+        localStorage.removeItem('escape_room_customizer_' + key);
+        localStorage.removeItem('escape_room_code_' + key);
+        localStorage.removeItem('escape_room_hint_' + key);
+        Object.keys(localStorage).forEach(storageKey => {
+            if (storageKey.startsWith('escape_room_pairing_') && localStorage.getItem(storageKey) === key) {
+                localStorage.removeItem(storageKey);
+            }
+        });
     }
 
     loadFromStorage() {
@@ -133,6 +206,7 @@ class GameMasterDashboard {
 
     saveToStorage() {
         if (this.gameState) localStorage.setItem(this.GS, JSON.stringify(this.gameState));
+        this.touchSession();
     }
 
     buildDefaultState() {
