@@ -20,16 +20,14 @@ class GameMasterDashboard {
         this.connectWebSocket();
         this.bindEvents();
         this.loadFromStorage();
-        this.updateConnectionStatus();
         window.addEventListener('storage', (e) => {
             if (e.key === this.GS && e.newValue) {
                 try { this.gameState = JSON.parse(e.newValue); this.renderGameState(); } catch {}
             }
-            if (e.key === 'escape_room_code') this.updateConnectionStatus();
         });
         this.connectionCheckInterval = setInterval(() => {
             if (!this.connected) this.checkConnection();
-            if (localStorage.getItem('escape_room_code')) this.updateConnectionStatus();
+            this.updateConnectionStatus();
             const stored = localStorage.getItem(this.GS);
             if (stored) {
                 try {
@@ -48,7 +46,12 @@ class GameMasterDashboard {
         if (stored) {
             try {
                 this.gameState = JSON.parse(stored);
-                this.syncTimer(this.gameState.time_remaining, this.gameState.game_complete, this.gameState.game_over);
+                if (this.gameState.time_remaining !== undefined) {
+                    this.serverTimeRemaining = this.gameState.time_remaining;
+                    this.displayTimeRemaining = this.gameState.time_remaining;
+                    this.timerState.gameComplete = Boolean(this.gameState.game_complete);
+                    this.timerState.gameOver = Boolean(this.gameState.game_over);
+                }
                 this.renderGameState();
             } catch {}
         }
@@ -290,7 +293,11 @@ class GameMasterDashboard {
         if (this.gameState) this.saveToStorage();
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
-        this.updateConnectionStatus();
+        const el = document.getElementById('connection-status');
+        if (el) {
+            el.className = 'connection-status connected';
+            el.innerHTML = '\u{1F7E2} Connected';
+        }
         this.showToast('Code: ' + code, 'success');
         fetch('/api/pairing/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => {});
     }
@@ -419,9 +426,7 @@ class GameMasterDashboard {
     updateConnectionStatus() {
         const el = document.getElementById('connection-status');
         if (!el) return;
-        const hasCode = localStorage.getItem('escape_room_code');
-        const hasGameState = localStorage.getItem(this.GS);
-        if (this.connected || (hasCode && hasGameState)) {
+        if (this.connected) {
             el.className = 'connection-status connected';
             el.innerHTML = '\u{1F7E2} Connected';
         } else {
