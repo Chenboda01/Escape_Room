@@ -119,6 +119,7 @@ class GameMasterDashboard {
     }
 
     connectWebSocket() {
+        if (!window.io || location.hostname.endsWith('github.io') || (location.port && location.port !== '5000')) return;
         this.socket = io();
         this.socket.on('connect', () => {
             if (this.disconnectGrace) { clearTimeout(this.disconnectGrace); this.disconnectGrace = null; }
@@ -297,6 +298,7 @@ class GameMasterDashboard {
     }
 
     startVideoOnPlayers() {
+        if (!this.socket) { this.showToast('Video broadcast needs the local server', 'warning'); return; }
         this.socket.emit('play_video', {});
         this.showToast('Video broadcast started', 'success');
     }
@@ -329,9 +331,9 @@ class GameMasterDashboard {
         const n = Number.isFinite(secondsRemaining) ? Math.max(0, secondsRemaining) : 0;
         this.serverTimeRemaining = n;
         this.displayTimeRemaining = n;
-        this.lastUpdateTimestamp = performance.now();
         this.timerState.gameComplete = Boolean(gameComplete);
         this.timerState.gameOver = Boolean(gameOver);
+        this.lastUpdateTimestamp = this.isGameRunning() ? performance.now() : null;
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
         if (this.shouldRunLocalTimer()) this.startLocalTimer();
         else this.stopLocalTimer();

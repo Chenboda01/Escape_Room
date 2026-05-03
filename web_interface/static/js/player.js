@@ -80,6 +80,7 @@ class PlayerScreen {
     }
 
     connectWebSocket() {
+        if (!window.io || location.hostname.endsWith('github.io') || (location.port && location.port !== '5000')) return;
         this.socket = io();
         this.socket.on('connect', () => {
             this.connected = true;
@@ -144,7 +145,7 @@ class PlayerScreen {
         this.socket.on('hint_used', () => {});
         this.socket.on('puzzle_solved', () => {});
         this.socket.on('door_unlocked', () => {});
-        this.socket.on('dragon_woken', () => {
+        this.socket.on('dragon_woke', () => {
             this.showToast('Dragon is awake!', 'warning');
         });
         this.socket.on('dragon_calmed', () => {});
@@ -178,9 +179,9 @@ class PlayerScreen {
         const n = Number.isFinite(secondsRemaining) ? Math.max(0, secondsRemaining) : 0;
         this.serverTimeRemaining = n;
         this.displayTimeRemaining = n;
-        this.lastUpdateTimestamp = performance.now();
         this.timerState.gameComplete = Boolean(gameComplete);
         this.timerState.gameOver = Boolean(gameOver);
+        this.lastUpdateTimestamp = this.isGameRunning() ? performance.now() : null;
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
         if (this.shouldRunLocalTimer()) this.startLocalTimer();
         else this.stopLocalTimer();
