@@ -11,6 +11,7 @@ class GameMasterDashboard {
         this.disconnectGrace = null;
         this.timerState = { gameComplete: false, gameOver: false };
         this.lastRenderedTimerKey = null;
+        this.localConnected = false;
         this.init();
     }
 
@@ -99,6 +100,7 @@ class GameMasterDashboard {
         return {
             game_id: 'local_' + Date.now(),
             start_time: null, end_time: null, time_remaining: 5400,
+            game_active: false,
             hints_remaining: 5, hints_used: 0,
             game_complete: false, game_over: false, paused: false,
             current_room: 'room1', rooms: rooms
@@ -177,6 +179,7 @@ class GameMasterDashboard {
             if (!this.gameState) this.gameState = this.buildDefaultState();
             this.gameState.start_time = Date.now() / 1000;
             this.gameState.time_remaining = 5400;
+            this.gameState.game_active = true;
             this.gameState.game_complete = false;
             this.gameState.game_over = false;
             this.timerState = { gameComplete: false, gameOver: false };
@@ -290,14 +293,11 @@ class GameMasterDashboard {
     generateCode() {
         const code = Math.random().toString(36).substring(2, 8);
         localStorage.setItem('escape_room_code', code);
+        this.localConnected = true;
         if (this.gameState) this.saveToStorage();
         document.getElementById('pairing-code').textContent = code;
         document.getElementById('code-display').style.display = 'block';
-        const el = document.getElementById('connection-status');
-        if (el) {
-            el.className = 'connection-status connected';
-            el.innerHTML = '\u{1F7E2} Connected';
-        }
+        this.updateConnectionStatus();
         this.showToast('Code: ' + code, 'success');
         fetch('/api/pairing/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => {});
     }
@@ -319,7 +319,7 @@ class GameMasterDashboard {
     }
 
     isGameRunning() {
-        return Boolean(this.gameState && this.gameState.start_time && !this.gameState.game_complete && !this.gameState.game_over && !this.gameState.paused);
+        return Boolean(this.gameState && this.gameState.game_active && this.gameState.start_time && !this.gameState.game_complete && !this.gameState.game_over && !this.gameState.paused);
     }
 
     shouldRunLocalTimer() {
@@ -359,7 +359,7 @@ class GameMasterDashboard {
         const sb = document.getElementById('game-status-sub');
         if (gameComplete) { st.textContent = 'Escaped!'; st.style.color = '#00b09b'; sb.textContent = 'Players escaped!'; }
         else if (gameOver) { st.textContent = "Time's Up!"; st.style.color = '#ff416c'; sb.textContent = 'Game over'; }
-        else if (this.gameState && this.gameState.start_time) { st.textContent = 'In Progress'; st.style.color = '#4cc9f0'; sb.textContent = 'Game running'; }
+        else if (this.isGameRunning()) { st.textContent = 'In Progress'; st.style.color = '#4cc9f0'; sb.textContent = 'Game running'; }
         else { st.textContent = 'Ready'; st.style.color = '#a0a0a0'; sb.textContent = 'Click Start to begin'; }
         const te = document.getElementById('time-remaining');
         if (safe < 300) { te.style.color = '#ff416c'; te.style.animation = safe < 60 ? 'pulse 1s infinite' : 'none'; }
@@ -426,7 +426,7 @@ class GameMasterDashboard {
     updateConnectionStatus() {
         const el = document.getElementById('connection-status');
         if (!el) return;
-        if (this.connected) {
+        if (this.connected || this.localConnected) {
             el.className = 'connection-status connected';
             el.innerHTML = '\u{1F7E2} Connected';
         } else {

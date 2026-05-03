@@ -117,6 +117,7 @@ class PlayerScreen {
             if (!this.paired) return;
             if (!this.gameState) this.gameState = {};
             this.gameState.start_time = data.start_time;
+            this.gameState.game_active = true;
             this.gameState.game_complete = false;
             this.gameState.game_over = false;
             this.gameState.time_remaining = 90 * 60;
@@ -127,6 +128,7 @@ class PlayerScreen {
             if (!this.paired) return;
             if (this.gameState) {
                 this.gameState.start_time = null;
+                this.gameState.game_active = false;
                 this.gameState.game_complete = false;
                 this.gameState.game_over = false;
                 this.gameState.time_remaining = 90 * 60;
@@ -185,7 +187,7 @@ class PlayerScreen {
     }
 
     isGameRunning() {
-        return Boolean(this.gameState && this.gameState.start_time && !this.gameState.game_complete && !this.gameState.game_over && !this.gameState.paused);
+        return Boolean(this.gameState && this.gameState.game_active && this.gameState.start_time && !this.gameState.game_complete && !this.gameState.game_over && !this.gameState.paused);
     }
 
     shouldRunLocalTimer() {
@@ -236,7 +238,7 @@ class PlayerScreen {
             statusEl.textContent = "Time's Up!";
             statusEl.style.color = '#ff416c';
             subEl.textContent = 'Game over';
-        } else if (this.gameState && this.gameState.start_time) {
+        } else if (this.isGameRunning()) {
             statusEl.textContent = 'In Progress';
             statusEl.style.color = '#4cc9f0';
             subEl.textContent = 'Game running';
