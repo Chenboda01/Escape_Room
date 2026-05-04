@@ -93,6 +93,7 @@ class PlayerScreen {
 
         this.sessionKey = sessionKey;
         this.paired = true;
+        localStorage.setItem('escape_room_player_connected_' + this.sessionKey, 'true');
         this.showGameUI();
         this.updateConnectionStatus();
         this.showToast('Paired with code: ' + code, 'success');

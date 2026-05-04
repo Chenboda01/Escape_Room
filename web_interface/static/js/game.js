@@ -420,6 +420,7 @@ class GameMasterDashboard {
             this.displayTimeRemaining = dur;
             this.lastUpdateTimestamp = null;
             this.stopLocalTimer();
+            localStorage.removeItem('escape_room_player_connected_' + this.sessionKey);
             this.updateTimer(dur, false, false);
             this.renderGameState();
             this.saveToStorage();
@@ -522,7 +523,7 @@ class GameMasterDashboard {
         localStorage.setItem('escape_room_code', code);
         localStorage.setItem(this.CODE, code);
         localStorage.setItem('escape_room_pairing_' + code, this.sessionKey || 'default');
-        this.localConnected = true;
+        localStorage.removeItem('escape_room_player_connected_' + this.sessionKey);
         this.gameState = this.buildDefaultState();
         this.timerState = { gameComplete: false, gameOver: false };
         const dur = this.getTimerDuration() * 60;
@@ -726,7 +727,8 @@ class GameMasterDashboard {
     updateConnectionStatus() {
         const el = document.getElementById('connection-status');
         if (!el) return;
-        if (this.connected || this.localConnected) {
+        const playerConnected = this.sessionKey && localStorage.getItem('escape_room_player_connected_' + this.sessionKey) === 'true';
+        if (this.connected || this.localConnected || playerConnected) {
             el.className = 'connection-status connected';
             el.innerHTML = '\u{1F7E2} Connected';
         } else {
