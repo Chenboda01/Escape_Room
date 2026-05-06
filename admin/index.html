@@ -770,10 +770,104 @@
             .rooms {
                 grid-template-columns: 1fr;
             }
-            
+
             .game-controls {
                 flex-direction: column;
             }
+        }
+
+        /* Tour Styles */
+        #tour-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 20000;
+            display: none;
+            pointer-events: none;
+        }
+
+        #tour-overlay.active {
+            display: block;
+        }
+
+        .tour-highlight {
+            position: relative;
+            z-index: 20001 !important;
+            pointer-events: auto;
+            box-shadow: 0 0 0 4px #d4a55a, 0 0 20px 8px rgba(212, 165, 90, 0.6) !important;
+            border-radius: 8px;
+            animation: tour-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes tour-pulse {
+            0%, 100% { box-shadow: 0 0 0 4px #d4a55a, 0 0 20px 8px rgba(212, 165, 90, 0.6); }
+            50% { box-shadow: 0 0 0 6px #d4a55a, 0 0 30px 12px rgba(212, 165, 90, 0.8); }
+        }
+
+        #tour-tooltip {
+            position: absolute;
+            z-index: 20002;
+            background: rgba(8, 12, 30, 0.96);
+            border: 2px solid #d4a55a;
+            border-radius: 14px;
+            padding: 20px 24px;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+            pointer-events: auto;
+        }
+
+        #tour-tooltip .tour-step-counter {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        #tour-tooltip .tour-text {
+            color: #e6e6e6;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        #tour-tooltip .tour-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        #tour-tooltip .tour-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #tour-tooltip .tour-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        #tour-tooltip .tour-btn-skip {
+            background: rgba(255,255,255,0.1);
+            color: #a0a0a0;
+            border: 1px solid #555;
+        }
+
+        #tour-tooltip .tour-btn-next {
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            color: #f0e0c0;
+            border: 1px solid #d4a55a;
+        }
+
+        #tour-tooltip .tour-btn-done {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: white;
+            border: none;
         }
     </style>
 </head>
@@ -988,6 +1082,17 @@
         <div class="loading-label">Loading UI</div>
         <div class="loading-track"><div class="loading-bar" id="loading-bar"></div></div>
         <div class="loading-pct" id="loading-pct">0%</div>
+    </div>
+
+    <div id="tour-overlay">
+        <div id="tour-tooltip">
+            <div class="tour-step-counter" id="tour-step-counter"></div>
+            <div class="tour-text" id="tour-text"></div>
+            <div class="tour-actions">
+                <button class="tour-btn tour-btn-skip" id="tour-skip">Skip Tour</button>
+                <button class="tour-btn tour-btn-next" id="tour-next">Next</button>
+            </div>
+        </div>
     </div>
     
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>

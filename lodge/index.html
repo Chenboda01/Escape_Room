@@ -34,38 +34,305 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
 .btn-ready:hover { background: linear-gradient(135deg, #8b7355, #a08060); box-shadow: 0 0 25px rgba(212,165,90,0.4); transform: scale(1.05); }
 .btn-ready:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-#animation-overlay { display: none; position: fixed; top:0;left:0;right:0;bottom:0; background:radial-gradient(circle at 50% 20%, #28345f 0%, #0a0a1e 52%, #03030a 100%); z-index:9999; overflow:hidden; }
-#animation-overlay.shake { animation:cameraShake 0.55s ease-in-out 5; }
-.sky-glow { position:absolute; inset:-20%; background:radial-gradient(circle at 72% 18%, rgba(212,165,90,0.32), transparent 18%), radial-gradient(circle at 35% 12%, rgba(76,201,240,0.18), transparent 20%); animation:skyPulse 9.6s ease-in-out forwards; }
-.stars { position:absolute; inset:0; background-image:radial-gradient(#fff 1px, transparent 1px), radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px); background-size:90px 90px, 140px 140px; background-position:0 0, 30px 60px; animation:starsMove 9.6s linear forwards; opacity:0.75; }
-.moon { position:absolute; top:8%; right:12%; width:72px; height:72px; border-radius:50%; background:#f0e0c0; box-shadow:0 0 40px rgba(240,224,192,0.55); }
-.mountains { position:absolute; left:-10%; right:-10%; bottom:30%; height:28%; background:linear-gradient(135deg, transparent 0 48%, #10162f 49% 65%, transparent 66%), linear-gradient(45deg, transparent 0 46%, #172044 47% 66%, transparent 67%); background-size:320px 220px, 420px 260px; animation:parallax 9.6s linear forwards; opacity:0.92; }
-.ground { position:absolute; left:-20%; right:-20%; bottom:0; height:34%; background:linear-gradient(#2c2418, #120f0b); transform:skewY(-2deg); box-shadow:0 -20px 60px rgba(0,0,0,0.45); }
-.road { position: absolute; bottom: 21%; left:-10%; right:-10%; height:72px; background:linear-gradient(90deg, transparent, rgba(212,165,90,0.22), transparent), linear-gradient(#5d4328, #2b1d13); transform:perspective(420px) rotateX(58deg); box-shadow:0 0 35px rgba(139,115,85,0.5); }
-.road-line { position: absolute; bottom:27%; width:120px; height:4px; background:#d4a55a; box-shadow:180px 0 0 #d4a55a, 360px 0 0 #d4a55a, 540px 0 0 #d4a55a; animation:roadLine 0.42s linear infinite; opacity:0.75; }
-@keyframes roadLine { 0%{left:-600px} 100%{left:100%} }
-.castle { position:absolute; right:8%; bottom:33%; color:#d4a55a; font-size:5.5rem; opacity:0; filter:drop-shadow(0 0 22px rgba(212,165,90,0.45)); animation:castleApproach 9.6s ease-in forwards; }
-.portal { position:absolute; left:50%; bottom:30%; width:30px; height:120px; border-radius:50%; border:3px solid rgba(76,201,240,0.0); transform:translateX(-50%) scale(0.3); opacity:0; box-shadow:0 0 0 rgba(76,201,240,0); }
-.portal.open { animation:portalOpen 1.25s ease-out forwards; }
-.horse-scene { position: absolute; bottom:29%; left:-220px; transform-origin:bottom center; animation:gallop 8.5s cubic-bezier(.2,.7,.22,1) 1 forwards; }
-@keyframes gallop { 0%{left:-220px;transform:scale(0.85)} 48%{left:38%;transform:scale(1.04)} 73%{left:47%;transform:scale(1.13)} 100%{left:50%;transform:scale(0.1);opacity:0} }
-.horse { font-size:4.2rem; line-height:1; animation:bounce 0.28s ease-in-out infinite alternate; filter:drop-shadow(0 12px 10px rgba(0,0,0,0.45)); }
+/* ====== ANIMATION OVERLAY (REDESIGNED) ====== */
+#animation-overlay {
+    display: none;
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    z-index: 9999; overflow: hidden;
+    background: linear-gradient(to bottom, #ff7e5f 0%, #feb47b 20%, #6a82fb 50%, #1a1a2e 100%);
+    background-size: 100% 400%;
+    animation: skyGradient 9.6s ease-in-out forwards;
+}
+#animation-overlay.shake { animation: cameraShake 0.55s ease-in-out 5; }
+
+/* Sky gradient animation */
+@keyframes skyGradient {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 0% 50%; }
+    100% { background-position: 0% 100%; }
+}
+
+/* Stars layers */
+.stars {
+    position: absolute; inset: 0;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+        radial-gradient(1px 1px at 30% 60%, #fff, transparent),
+        radial-gradient(1px 1px at 50% 10%, #fff, transparent),
+        radial-gradient(1px 1px at 70% 80%, #fff, transparent),
+        radial-gradient(1px 1px at 90% 40%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 15% 45%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1.5px 1.5px at 60% 25%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1.5px 1.5px at 85% 70%, rgba(255,255,255,0.8), transparent);
+    background-size: 200px 200px, 300px 300px, 250px 250px, 350px 350px, 400px 400px, 180px 180px, 220px 220px, 280px 280px;
+    animation: starsTwinkle 9.6s linear forwards, starsDrift 9.6s linear forwards;
+    opacity: 0.9;
+}
+@keyframes starsTwinkle {
+    0%, 100% { opacity: 0.9; }
+    50%      { opacity: 0.6; }
+}
+@keyframes starsDrift {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-30px); }
+}
+
+/* Moon */
+.moon {
+    position: absolute; top: 8%; right: 12%;
+    width: 72px; height: 72px; border-radius: 50%;
+    background: #f0e0c0;
+    box-shadow: 0 0 40px rgba(240,224,192,0.55), 0 0 80px rgba(240,224,192,0.3);
+    animation: moonGlow 9.6s ease-in-out forwards;
+}
+@keyframes moonGlow {
+    0%   { box-shadow: 0 0 40px rgba(240,224,192,0.55), 0 0 80px rgba(240,224,192,0.3); }
+    70%  { box-shadow: 0 0 60px rgba(240,224,192,0.8), 0 0 120px rgba(240,224,192,0.5); }
+    100% { box-shadow: 0 0 40px rgba(240,224,192,0.55), 0 0 80px rgba(240,224,192,0.3); }
+}
+
+/* Mountains (far background) */
+.mountains {
+    position: absolute; left: -10%; right: -10%; bottom: 30%; height: 28%;
+    background:
+        linear-gradient(135deg, transparent 0 48%, #10162f 49% 65%, transparent 66%),
+        linear-gradient(45deg, transparent 0 46%, #172044 47% 66%, transparent 67%);
+    background-size: 320px 220px, 420px 260px;
+    animation: parallaxSlow 9.6s linear forwards;
+    opacity: 0.92;
+    z-index: 1;
+}
+@keyframes parallaxSlow {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-180px); }
+}
+
+/* Hills (mid-ground) */
+.hills {
+    position: absolute; left: -20%; right: -20%; bottom: 25%; height: 20%;
+    background:
+        radial-gradient(ellipse at 20% 100%, #1a3a2a 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, #1f4a35 0%, transparent 65%),
+        radial-gradient(ellipse at 80% 100%, #1a3a2a 0%, transparent 60%);
+    background-size: 300px 150px, 400px 180px, 350px 160px;
+    animation: parallaxMed 9.6s linear forwards;
+    z-index: 2;
+}
+@keyframes parallaxMed {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-120px); }
+}
+
+/* Ground */
+.ground {
+    position: absolute; left: -20%; right: -20%; bottom: 0; height: 34%;
+    background: linear-gradient(#2c2418, #120f0b);
+    transform: skewY(-2deg);
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.45);
+    z-index: 3;
+}
+
+/* Winding path (SVG) */
+.winding-path {
+    position: absolute; bottom: 21%; left: -10%; right: -10%; height: 80px;
+    z-index: 4;
+    animation: pathDraw 8.5s cubic-bezier(.2,.7,.22,1) forwards;
+}
+.winding-path svg { width: 100%; height: 100%; }
+.winding-path path {
+    stroke: #5d4328; stroke-width: 30; fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 800; stroke-dashoffset: 800;
+    animation: drawPath 8.5s cubic-bezier(.2,.7,.22,1) forwards;
+}
+@keyframes drawPath { 0%{stroke-dashoffset:800} 100%{stroke-dashoffset:0} }
+@keyframes pathDraw { 0%{transform:translateX(0)} 100%{transform:translateX(-100px)} }
+
+/* Trees */
+.trees {
+    position: absolute; bottom: 28%; left: 0; right: 0; height: 100px;
+    z-index: 5;
+    animation: treesScroll 9.6s linear forwards;
+}
+.tree {
+    position: absolute; bottom: 0; font-size: 2.5rem;
+    opacity: 0.9; animation: treeBob 2s ease-in-out infinite alternate;
+}
+.tree:nth-child(1) { left: 5%; animation-delay: 0s; }
+.tree:nth-child(2) { left: 25%; animation-delay: 0.3s; }
+.tree:nth-child(3) { left: 45%; animation-delay: 0.6s; }
+.tree:nth-child(4) { left: 65%; animation-delay: 0.9s; }
+.tree:nth-child(5) { left: 85%; animation-delay: 1.2s; }
+.tree:nth-child(6) { left: 15%; bottom: 10px; animation-delay: 0.4s; }
+.tree:nth-child(7) { left: 35%; bottom: 10px; animation-delay: 0.7s; }
+.tree:nth-child(8) { left: 55%; bottom: 10px; animation-delay: 1.0s; }
+.tree:nth-child(9) { left: 75%; bottom: 10px; animation-delay: 1.3s; }
+@keyframes treesScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-200px)} }
+@keyframes treeBob { 0%{transform:translateY(0) rotate(-1deg)} 100%{transform:translateY(-5px) rotate(1deg)} }
+
+/* Castle */
+.castle {
+    position: absolute; right: 8%; bottom: 33%;
+    font-size: 5.5rem; opacity: 0;
+    filter: drop-shadow(0 0 22px rgba(212,165,90,0.45));
+    animation: castleApproach 9.6s cubic-bezier(.2,.7,.22,1) forwards;
+    z-index: 6;
+}
+@keyframes castleApproach {
+    0%   { opacity: 0; transform: translateX(70px) scale(0.65); }
+    45%  { opacity: 0.35; }
+    100% { opacity: 1; transform: translateX(0) scale(1.2); }
+}
+
+/* Portal */
+.portal {
+    position: absolute; left: 50%; bottom: 30%;
+    width: 30px; height: 120px; border-radius: 50%;
+    border: 3px solid rgba(76,201,240,0);
+    transform: translateX(-50%) scale(0.3);
+    opacity: 0; box-shadow: 0 0 0 rgba(76,201,240,0);
+    z-index: 7;
+}
+.portal.open {
+    animation: portalOpen 1.25s cubic-bezier(.2,.7,.22,1) forwards;
+}
+@keyframes portalOpen {
+    0%   { opacity: 0; transform: translateX(-50%) scale(0.2); border-color: rgba(76,201,240,0); }
+    45%  { opacity: 1; transform: translateX(-50%) scale(1.15); border-color: rgba(76,201,240,0.9); box-shadow: 0 0 35px rgba(76,201,240,0.8), inset 0 0 24px rgba(124,58,237,0.8); }
+    100% { opacity: 0.9; transform: translateX(-50%) scale(1.6); border-color: rgba(212,165,90,0.85); box-shadow: 0 0 70px rgba(212,165,90,0.85), inset 0 0 38px rgba(76,201,240,0.75); }
+}
+
+/* Portal particles (spinning) */
+.portal-particles {
+    position: absolute; left: 50%; bottom: 30%;
+    width: 120px; height: 120px; transform: translateX(-50%);
+    z-index: 7; opacity: 0;
+    animation: particlesAppear 1.25s 5.6s cubic-bezier(.2,.7,.22,1) forwards;
+}
+.portal-particles .particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(76,201,240,0.9); box-shadow: 0 0 8px rgba(76,201,240,0.8);
+    top: 50%; left: 50%;
+    animation: particleSpin 2s linear infinite;
+}
+.portal-particles .particle:nth-child(1) { transform: rotate(0deg) translateX(50px); }
+.portal-particles .particle:nth-child(2) { transform: rotate(45deg) translateX(50px); }
+.portal-particles .particle:nth-child(3) { transform: rotate(90deg) translateX(50px); }
+.portal-particles .particle:nth-child(4) { transform: rotate(135deg) translateX(50px); }
+.portal-particles .particle:nth-child(5) { transform: rotate(180deg) translateX(50px); }
+.portal-particles .particle:nth-child(6) { transform: rotate(225deg) translateX(50px); }
+.portal-particles .particle:nth-child(7) { transform: rotate(270deg) translateX(50px); }
+.portal-particles .particle:nth-child(8) { transform: rotate(315deg) translateX(50px); }
+@keyframes particlesAppear { 0%{opacity:0} 100%{opacity:1} }
+@keyframes particleSpin { 0%{transform:rotate(0deg) translateX(50px) scale(1)} 50%{transform:rotate(180deg) translateX(50px) scale(1.3)} 100%{transform:rotate(360deg) translateX(50px) scale(1)} }
+
+/* Magical sparkles around portal */
+.sparkles {
+    position: absolute; left: 50%; bottom: 30%;
+    width: 200px; height: 200px; transform: translateX(-50%);
+    z-index: 7; opacity: 0;
+    animation: sparklesAppear 1.25s 5.6s cubic-bezier(.2,.7,.22,1) forwards;
+}
+.sparkle {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.9); box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    animation: sparkleFloat 3s ease-in-out infinite alternate;
+}
+.sparkle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
+.sparkle:nth-child(2) { top: 30%; left: 80%; animation-delay: 0.5s; }
+.sparkle:nth-child(3) { top: 70%; left: 60%; animation-delay: 1s; }
+.sparkle:nth-child(4) { top: 50%; left: 10%; animation-delay: 1.5s; }
+.sparkle:nth-child(5) { top: 20%; left: 50%; animation-delay: 2s; }
+@keyframes sparklesAppear { 0%{opacity:0} 100%{opacity:0.8} }
+@keyframes sparkleFloat { 0%{transform:translateY(0) scale(1); opacity:0.8} 100%{transform:translateY(-15px) scale(1.5); opacity:0.3} }
+
+/* Light beam from sky */
+.light-beam {
+    position: absolute; left: 50%; top: 0;
+    width: 80px; height: 0; transform: translateX(-50%);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(212,165,90,0.4), transparent);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+    opacity: 0; z-index: 6;
+    animation: beamGrow 1.25s 5.6s cubic-bezier(.2,.7,.22,1) forwards;
+}
+@keyframes beamGrow { 0%{height:0;opacity:0} 100%{height:60%;opacity:0.7} }
+
+/* Horse scene */
+.horse-scene {
+    position: absolute; bottom: 29%; left: -220px;
+    transform-origin: bottom center;
+    animation: gallop 8.5s cubic-bezier(.2,.7,.22,1) forwards;
+    z-index: 8;
+}
+@keyframes gallop {
+    0%   { left: -220px; transform: scale(0.85) rotate(-2deg); }
+    48%  { left: 38%; transform: scale(1.04) rotate(0deg); }
+    73%  { left: 47%; transform: scale(1.13) rotate(1deg); }
+    100% { left: 50%; transform: scale(0.1) rotate(0deg); opacity: 0; }
+}
+.horse {
+    font-size: 4.2rem; line-height: 1;
+    animation: bounce 0.28s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 10px rgba(0,0,0,0.45));
+}
 @keyframes bounce { 0%{transform:translateY(0) rotate(-2deg)} 100%{transform:translateY(-12px) rotate(2deg)} }
-.city-label { position:absolute; bottom:48%; right:8%; font-size:1.8rem; color:#d4a55a; letter-spacing:3px; opacity:0; text-shadow:0 0 20px rgba(212,165,90,0.65); }
-.city-label.show { opacity:1; transition:opacity 0.5s ease; }
-.dust { position:absolute; bottom:27%; left:-260px; font-size:2rem; animation:dust 8.2s ease-out 1 forwards; opacity:0.7; filter:blur(0.5px); }
-@keyframes dust { 0%{left:-260px;opacity:0.2;transform:scale(0.7)} 45%{left:27%;opacity:0.85;transform:scale(1.4)} 78%{left:36%;opacity:0.55;transform:scale(1.9)} 100%{left:39%;opacity:0;transform:scale(2.4)} }
-.teleport-text { position:absolute; top:18%; left:50%; transform:translateX(-50%); color:#d4a55a; font-size:1.5rem; letter-spacing:4px; opacity:0; text-align:center; text-shadow:0 0 18px rgba(212,165,90,0.65); }
-.teleport-text.show { opacity:1; transition:opacity 0.3s ease; }
-.flash { position:absolute; inset:0; background:#f0e0c0; opacity:0; pointer-events:none; }
-.flash.burst { animation:flashBurst 1s ease-out forwards; }
-@keyframes parallax { 0%{transform:translateX(0)} 100%{transform:translateX(-180px)} }
-@keyframes starsMove { 0%{background-position:0 0,30px 60px} 100%{background-position:-70px 20px,-120px 90px} }
-@keyframes skyPulse { 0%,100%{filter:brightness(1)} 70%{filter:brightness(1.5) saturate(1.25)} }
-@keyframes castleApproach { 0%{opacity:0;transform:translateX(70px) scale(0.65)} 45%{opacity:0.35} 100%{opacity:1;transform:translateX(0) scale(1)} }
-@keyframes portalOpen { 0%{opacity:0;transform:translateX(-50%) scale(0.2);border-color:rgba(76,201,240,0)} 45%{opacity:1;transform:translateX(-50%) scale(1.15);border-color:rgba(76,201,240,0.9);box-shadow:0 0 35px rgba(76,201,240,0.8), inset 0 0 24px rgba(124,58,237,0.8)} 100%{opacity:0.9;transform:translateX(-50%) scale(1.6);border-color:rgba(212,165,90,0.85);box-shadow:0 0 70px rgba(212,165,90,0.85), inset 0 0 38px rgba(76,201,240,0.75)} }
+
+/* Dust trail */
+.dust {
+    position: absolute; bottom: 27%; left: -260px;
+    font-size: 2rem;
+    animation: dust 8.2s cubic-bezier(.2,.7,.22,1) forwards;
+    opacity: 0.7; filter: blur(0.5px);
+    z-index: 7;
+}
+@keyframes dust {
+    0%   { left: -260px; opacity: 0.2; transform: scale(0.7); }
+    45%  { left: 27%; opacity: 0.85; transform: scale(1.4); }
+    78%  { left: 36%; opacity: 0.55; transform: scale(1.9); }
+    100% { left: 39%; opacity: 0; transform: scale(2.4); }
+}
+
+/* City label */
+.city-label {
+    position: absolute; bottom: 48%; right: 8%;
+    font-size: 1.8rem; color: #d4a55a; letter-spacing: 3px;
+    opacity: 0; text-shadow: 0 0 20px rgba(212,165,90,0.65);
+    z-index: 9;
+}
+.city-label.show { opacity: 1; transition: opacity 0.5s ease; }
+
+/* Teleport text */
+.teleport-text {
+    position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
+    color: #d4a55a; font-size: 1.5rem; letter-spacing: 4px;
+    opacity: 0; text-align: center; text-shadow: 0 0 18px rgba(212,165,90,0.65);
+    z-index: 9;
+}
+.teleport-text.show { opacity: 1; transition: opacity 0.3s ease; }
+
+/* Whoosh effect */
+.whoosh {
+    position: absolute; left: 50%; bottom: 30%;
+    width: 0; height: 0; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.8); transform: translateX(-50%);
+    opacity: 0; z-index: 8;
+    animation: whoosh 0.8s 7s cubic-bezier(.2,.7,.22,1) forwards;
+}
+@keyframes whoosh { 0%{width:0;height:0;opacity:0.8;margin-left:0;margin-bottom:0} 100%{width:200px;height:200px;opacity:0;margin-left:-100px;margin-bottom:-100px} }
+
+/* Flash */
+.flash { position: absolute; inset: 0; background: #f0e0c0; opacity: 0; pointer-events: none; z-index: 10; }
+.flash.burst { animation: flashBurst 1s ease-out forwards; }
+
+/* Camera shake */
+@keyframes cameraShake {
+    0%,100% { transform: translate(0,0); }
+    20%     { transform: translate(-5px,3px); }
+    40%     { transform: translate(4px,-4px); }
+    60%     { transform: translate(-3px,-2px); }
+    80%     { transform: translate(3px,4px); }
+}
 @keyframes flashBurst { 0%,55%{opacity:0} 72%{opacity:0.88} 100%{opacity:0} }
-@keyframes cameraShake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-5px,3px)} 40%{transform:translate(4px,-4px)} 60%{transform:translate(-3px,-2px)} 80%{transform:translate(3px,4px)} }
 </style>
 </head>
 <body>
@@ -84,11 +351,36 @@ h1 { color: #d4a55a; font-size: 2.5rem; text-align: center; margin-bottom: 10px;
     <button class="btn-ready" id="btn-ready">Ready to Play</button>
 </div>
 <div id="animation-overlay">
-    <div class="sky-glow"></div><div class="stars"></div><div class="moon"></div><div class="mountains"></div><div class="ground"></div>
-    <div class="castle">🏰</div><div class="portal" id="portal"></div>
-    <div class="road"></div><div class="road-line"></div>
-    <div class="dust">&#x1F4A8;</div>
+    <div class="stars"></div>
+    <div class="moon"></div>
+    <div class="mountains"></div>
+    <div class="hills"></div>
+    <div class="ground"></div>
+    <div class="winding-path">
+        <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
+            <path d="M -200,100 Q 100,50 300,100 T 700,100 T 1100,100" />
+        </svg>
+    </div>
+    <div class="trees">
+        <div class="tree">🌲</div><div class="tree">🌲</div><div class="tree">🌲</div>
+        <div class="tree">🌲</div><div class="tree">🌲</div>
+        <div class="tree">🌳</div><div class="tree">🌳</div><div class="tree">🌳</div>
+    </div>
+    <div class="castle">🏰</div>
+    <div class="portal" id="portal">
+        <div class="portal-particles">
+            <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+            <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        </div>
+        <div class="sparkles">
+            <div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div>
+            <div class="sparkle"></div><div class="sparkle"></div>
+        </div>
+        <div class="light-beam"></div>
+    </div>
     <div class="horse-scene"><div class="horse">&#x1F40E;&#x1F9D1;&#x1F482;</div></div>
+    <div class="dust">&#x1F4A8;</div>
+    <div class="whoosh"></div>
     <div class="city-label" id="city-label">&#x1F3F0; /admin</div>
     <div class="teleport-text" id="teleport-text">&#x2728; Arriving at the Command Keep... &#x2728;</div>
     <div class="flash" id="flash"></div>

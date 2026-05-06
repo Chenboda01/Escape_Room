@@ -20,6 +20,9 @@ class GameMasterDashboard {
         this.booted = false;
         this.pendingBoot = false;
         this.summaryShown = false;
+        this.tourActive = false;
+        this.tourCurrentStep = -1;
+        this.tourSteps = [];
         this.init();
     }
 
@@ -70,6 +73,9 @@ class GameMasterDashboard {
                 } catch {}
             }
         }, 2000);
+        if (!localStorage.getItem('escape_room_tour_shown')) {
+            setTimeout(() => this.showTour(), 300);
+        }
     }
 
     initLogin() {
@@ -1069,6 +1075,94 @@ class GameMasterDashboard {
         document.getElementById('twofa-code').value = '';
         document.getElementById('twofa-error').textContent = '';
         document.getElementById('twofa-code').focus();
+    }
+
+
+    // ---- Tour Methods ----
+    showTour() {
+        if (localStorage.getItem('escape_room_tour_shown') || this.tourActive) return;
+        this.tourActive = true;
+        this.tourCurrentStep = 0;
+        this.tourSteps = [
+            { id: 'btn-start', text: 'Click here to begin the 90-minute timer' },
+            { id: 'btn-generate-code', text: 'Click here to create a pairing code for players' },
+            { id: 'btn-hint', text: 'Click here to send a message to the player screen' },
+            { id: 'settings-toggle', text: 'Click the gear to customize your dashboard' },
+            { id: 'account-toggle', text: 'Click here to manage your account' },
+            { id: 'btn-dragon', text: 'Click here to wake the dragon' },
+            { id: 'time-remaining', text: 'This shows the remaining time' }
+        ];
+        const overlay = document.getElementById('tour-overlay');
+        if (overlay) overlay.classList.add('active');
+        this.highlightStep(this.tourCurrentStep);
+        const nextBtn = document.getElementById('tour-next');
+        const skipBtn = document.getElementById('tour-skip');
+        if (nextBtn) nextBtn.onclick = () => this.nextStep();
+        if (skipBtn) skipBtn.onclick = () => this.endTour();
+    }
+
+    nextStep() {
+        if (!this.tourActive) return;
+        this.removeHighlight();
+        this.tourCurrentStep++;
+        if (this.tourCurrentStep >= this.tourSteps.length) {
+            this.endTour();
+            return;
+        }
+        this.highlightStep(this.tourCurrentStep);
+    }
+
+    endTour() {
+        this.tourActive = false;
+        this.removeHighlight();
+        const overlay = document.getElementById('tour-overlay');
+        if (overlay) overlay.classList.remove('active');
+        localStorage.setItem('escape_room_tour_shown', 'true');
+        const nextBtn = document.getElementById('tour-next');
+        const skipBtn = document.getElementById('tour-skip');
+        if (nextBtn) nextBtn.onclick = null;
+        if (skipBtn) skipBtn.onclick = null;
+    }
+
+    highlightStep(stepIndex) {
+        const step = this.tourSteps[stepIndex];
+        if (!step) { this.nextStep(); return; }
+        const element = document.getElementById(step.id);
+        if (!element) { this.nextStep(); return; }
+        element.classList.add('tour-highlight');
+        const stepText = document.getElementById('tour-text');
+        if (stepText) stepText.textContent = step.text;
+        const counter = document.getElementById('tour-step-counter');
+        if (counter) counter.textContent = 'Step ' + (stepIndex + 1) + ' of ' + this.tourSteps.length;
+        const nextBtn = document.getElementById('tour-next');
+        if (nextBtn) {
+            nextBtn.textContent = stepIndex === this.tourSteps.length - 1 ? 'Finish' : 'Next';
+        }
+        this.positionTooltip(element);
+    }
+
+    removeHighlight() {
+        if (this.tourCurrentStep < 0 || this.tourCurrentStep >= this.tourSteps.length) return;
+        const step = this.tourSteps[this.tourCurrentStep];
+        if (!step) return;
+        const element = document.getElementById(step.id);
+        if (element) element.classList.remove('tour-highlight');
+    }
+
+    positionTooltip(element) {
+        const tooltip = document.getElementById('tour-tooltip');
+        if (!tooltip || !element) return;
+        const rect = element.getBoundingClientRect();
+        const tw = tooltip.offsetWidth || 300;
+        const th = tooltip.offsetHeight || 150;
+        let top = rect.bottom + 10;
+        let left = rect.left + (rect.width / 2) - (tw / 2);
+        if (top + th > window.innerHeight) top = rect.top - th - 10;
+        if (left + tw > window.innerWidth) left = window.innerWidth - tw - 10;
+        if (left < 0) left = 10;
+        if (top < 0) top = 10;
+        tooltip.style.top = top + 'px';
+        tooltip.style.left = left + 'px';
     }
 
     showToast(message, type) {
