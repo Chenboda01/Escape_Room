@@ -23,6 +23,7 @@ class GameMasterDashboard {
         this.tourActive = false;
         this.tourCurrentStep = -1;
         this.tourSteps = [];
+        this.feedbackData = null;
         this.init();
     }
 
@@ -1117,17 +1118,53 @@ class GameMasterDashboard {
             if (error) error.textContent = 'Enter a valid email address.';
             return;
         }
-        const subject = 'Escape Room Feedback from ' + name;
+        this.feedbackData = { name, fix, email };
+        this.closeFeedback();
+        this.openEmailServicePicker();
+    }
+
+    openEmailServicePicker() {
+        const overlay = document.getElementById('email-service-overlay');
+        if (overlay) overlay.classList.add('open');
+        document.querySelectorAll('.email-service-btn').forEach(btn => {
+            btn.onclick = () => this.sendViaService(btn.dataset.service);
+        });
+        const cancel = document.querySelector('.btn-email-cancel');
+        if (cancel) cancel.onclick = () => this.closeEmailServicePicker();
+    }
+
+    closeEmailServicePicker() {
+        const overlay = document.getElementById('email-service-overlay');
+        if (overlay) overlay.classList.remove('open');
+        this.feedbackData = null;
+    }
+
+    sendViaService(service) {
+        const d = this.feedbackData;
+        if (!d) return;
+        const subject = 'Escape Room Feedback from ' + d.name;
         const body = [
-            'Full Name: ' + name,
-            'Email: ' + email,
+            'Full Name: ' + d.name,
+            'Email: ' + d.email,
             '',
             'Required Fix:',
-            fix
+            d.fix
         ].join('\n');
-        window.location.href = 'mailto:chenboda01@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-        this.showToast('Opening email to chenboda01@gmail.com', 'success');
-        this.closeFeedback();
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(body);
+        const urls = {
+            gmail: 'https://mail.google.com/mail/?view=cm&to=chenboda01@gmail.com&su=' + encodedSubject + '&body=' + encodedBody,
+            thunderbird: 'mailto:chenboda01@gmail.com?subject=' + encodedSubject + '&body=' + encodedBody,
+            outlook: 'https://outlook.office.com/mail/deeplink/compose?to=chenboda01@gmail.com&subject=' + encodedSubject + '&body=' + encodedBody,
+            yahoo: 'https://compose.mail.yahoo.com/?to=chenboda01@gmail.com&subject=' + encodedSubject + '&body=' + encodedBody,
+            proton: 'https://mail.proton.me/u/0/mail/inbox?compose=true&to=chenboda01@gmail.com&subject=' + encodedSubject + '&body=' + encodedBody,
+            icloud: 'https://www.icloud.com/mail/compose?to=chenboda01@gmail.com&subject=' + encodedSubject + '&body=' + encodedBody
+        };
+        const url = urls[service];
+        if (!url) return;
+        this.showToast('Opening ' + service + '...', 'success');
+        window.open(url, '_blank');
+        this.closeEmailServicePicker();
     }
 
     isValidFeedbackEmail(email) {

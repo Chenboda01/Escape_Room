@@ -726,6 +726,58 @@
         .btn-feedback-send { background: linear-gradient(135deg, #6b4a2a, #8b7355); color: #f0e0c0; border: 1px solid #d4a55a; }
         .btn-feedback-close { background: rgba(255,65,108,0.15); color: #ff416c; border: 1px solid #ff416c; }
 
+        #email-service-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 13000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: rgba(3, 4, 12, 0.86);
+        }
+        #email-service-overlay.open { display: flex; }
+        .email-service-card {
+            width: min(520px, 100%);
+            padding: 28px;
+            border: 2px solid #d4a55a;
+            border-radius: 18px;
+            background: radial-gradient(circle at top left, rgba(212, 165, 90, 0.18), rgba(8, 12, 30, 0.98) 42%);
+            box-shadow: 0 0 45px rgba(212, 165, 90, 0.28);
+        }
+        .email-service-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .email-service-head h3 { color: #d4a55a; font-family: Georgia, serif; margin-bottom: 4px; }
+        .email-service-head p { color: #a0a0a0; font-size: 0.86rem; }
+        .email-service-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 18px 0;
+        }
+        .email-service-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 8px;
+            border-radius: 12px;
+            border: 1px solid #8b7355;
+            background: rgba(0, 0, 0, 0.45);
+            color: #f0e0c0;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .email-service-btn:hover { background: rgba(212, 165, 90, 0.18); border-color: #d4a55a; }
+        .email-service-btn svg { width: 36px; height: 36px; }
+        .email-service-btn span { font-size: 0.82rem; font-weight: 600; }
+        .email-service-actions { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-email-cancel { background: rgba(255,65,108,0.15); color: #ff416c; border: 1px solid #ff416c; flex: 1; }
+
         .settings-toggle {
             position: fixed;
             top: 18px;
@@ -1047,6 +1099,47 @@
                     <button class="btn-feedback-send" type="submit">Send Feedback</button>
                 </div>
             </form>
+        </div>
+
+        <div id="email-service-overlay" aria-label="Choose email service">
+            <div class="email-service-card">
+                <div class="email-service-head">
+                    <img src="../Feedback.icon.png" alt="Feedback" style="width:48px;height:48px;border-radius:12px;border:1px solid rgba(212,165,90,0.7);">
+                    <div>
+                        <h3>Choose Email Service</h3>
+                        <p>Select how you want to send your feedback.</p>
+                    </div>
+                </div>
+                <div class="email-service-grid">
+                    <button class="email-service-btn" data-service="gmail">
+                        <svg viewBox="0 0 24 24"><path fill="#EA4335" d="M22 8.608v8.142a3.25 3.25 0 0 1-3.066 3.245L18.75 20H5.25a3.25 3.25 0 0 1-3.245-3.066L2 16.75V8.608l9.652 5.056a.75.75 0 0 0 .696 0L22 8.608Z"/><path fill="#FBBC04" d="M5.25 4h13.5a3.25 3.25 0 0 1 3.245 3.066L12 12.597 1.995 7.066A3.25 3.25 0 0 1 5.25 4Z"/></svg>
+                        <span>Gmail</span>
+                    </button>
+                    <button class="email-service-btn" data-service="thunderbird">
+                        <svg viewBox="0 0 24 24"><path fill="#0A84FF" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 2.5c1.93 0 3.68.78 4.95 2.05L12 12 7.05 6.55C8.32 5.28 10.07 4.5 12 4.5ZM4.5 12c0-1.23.37-2.37 1-3.32L9.5 15l-4 4c-.63-.95-1-2.09-1-3.32Zm7.5 7.5c-1.23 0-2.37-.37-3.32-1l4-4 4 4c-.95.63-2.09 1-3.32 1.5ZM20 16.5c0 1.23-.37 2.37-1 3.32l-4-4 4.5-4.5c.63.95 1 2.09 1 3.32Zm0-9c0-1.23-.37-2.37-1-3.32L12 12l7 7c.63-.95 1-2.09 1-3.32Z"/></svg>
+                        <span>Thunderbird</span>
+                    </button>
+                    <button class="email-service-btn" data-service="outlook">
+                        <svg viewBox="0 0 24 24"><path fill="#0078D4" d="M7.96 2.5c-.43 0-.86.13-1.26.41L1.54 6.71a2.2 2.2 0 0 0-.18 3.15l6.53 7.44a2.2 2.2 0 0 0 1.64.74h6.34a2.2 2.2 0 0 0 1.64-.74l6.53-7.44a2.2 2.2 0 0 0-.18-3.15L17.3 2.91a2.2 2.2 0 0 0-1.26-.41H7.96Z"/><path fill="#FFF" d="M12 8.5l-6 3.5v4l6-3.5 6 3.5v-4l-6-3.5Z"/></svg>
+                        <span>Outlook</span>
+                    </button>
+                    <button class="email-service-btn" data-service="yahoo">
+                        <svg viewBox="0 0 24 24"><rect fill="#6001D2" width="24" height="24" rx="4"/><path fill="#FFF" d="M6.5 7h2.5l3 5.5L15 7h2.5L14 13.5l3.5 5H15l-2.5-4.5L10 18.5H7.5l3.5-5L6.5 7Z"/></svg>
+                        <span>Yahoo Mail</span>
+                    </button>
+                    <button class="email-service-btn" data-service="proton">
+                        <svg viewBox="0 0 24 24"><path fill="#6D4AFF" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 2.5c1.93 0 3.68.78 4.95 2.05L12 12 7.05 6.55C8.32 5.28 10.07 4.5 12 4.5ZM4.5 12c0-1.23.37-2.37 1-3.32L9.5 15l-4 4c-.63-.95-1-2.09-1-3.32Zm7.5 7.5c-1.23 0-2.37-.37-3.32-1l4-4 4 4c-.95.63-2.09 1-3.32 1.5ZM20 16.5c0 1.23-.37 2.37-1 3.32l-4-4 4.5-4.5c.63.95 1 2.09 1 3.32Zm0-9c0-1.23-.37-2.37-1-3.32L12 12l7 7c.63-.95 1-2.09 1-3.32Z"/></svg>
+                        <span>Proton Mail</span>
+                    </button>
+                    <button class="email-service-btn" data-service="icloud">
+                        <svg viewBox="0 0 24 24"><path fill="#007AFF" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm5 13H7c-1.1 0-2-.9-2-2s.9-2 2-2h.01C7.52 9.84 9.58 8 12 8c2.42 0 4.48 1.84 4.99 4H17c1.1 0 2 .9 2 2s-.9 2-2 2Z"/></svg>
+                        <span>iCloud Mail</span>
+                    </button>
+                </div>
+                <div class="email-service-actions">
+                    <button class="btn-email-cancel" type="button">Cancel</button>
+                </div>
+            </div>
         </div>
 
         <div id="twofa-overlay">
