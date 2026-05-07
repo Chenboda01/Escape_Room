@@ -386,6 +386,16 @@ class GameMasterDashboard {
         document.getElementById('btn-generate-code').addEventListener('click', () => this.generateCode());
         const btnCloseSummary = document.getElementById('btn-summary-close');
         if (btnCloseSummary) btnCloseSummary.addEventListener('click', () => this.closeSummary());
+        const feedbackToggle = document.getElementById('feedback-toggle');
+        const feedbackClose = document.getElementById('feedback-close');
+        const feedbackForm = document.getElementById('feedback-form');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        if (feedbackToggle) feedbackToggle.addEventListener('click', () => this.openFeedback());
+        if (feedbackClose) feedbackClose.addEventListener('click', () => this.closeFeedback());
+        if (feedbackForm) feedbackForm.addEventListener('submit', (e) => this.submitFeedback(e));
+        if (feedbackOverlay) feedbackOverlay.addEventListener('click', (e) => {
+            if (e.target === feedbackOverlay) this.closeFeedback();
+        });
     }
 
     tryServerThen(method, body, fallback) {
@@ -1078,8 +1088,52 @@ class GameMasterDashboard {
         document.getElementById('twofa-code').focus();
     }
 
+    openFeedback() {
+        const overlay = document.getElementById('feedback-overlay');
+        const error = document.getElementById('feedback-error');
+        if (error) error.textContent = '';
+        if (overlay) overlay.classList.add('open');
+        document.getElementById('feedback-name')?.focus();
+    }
 
-    // ---- Tour Methods ----
+    closeFeedback() {
+        const overlay = document.getElementById('feedback-overlay');
+        const error = document.getElementById('feedback-error');
+        if (error) error.textContent = '';
+        if (overlay) overlay.classList.remove('open');
+    }
+
+    submitFeedback(e) {
+        e.preventDefault();
+        const name = document.getElementById('feedback-name')?.value.trim() || '';
+        const fix = document.getElementById('feedback-fix')?.value.trim() || '';
+        const email = document.getElementById('feedback-email')?.value.trim() || '';
+        const error = document.getElementById('feedback-error');
+        if (!name || !fix || !email) {
+            if (error) error.textContent = 'Fill out full name, required fix, and email address.';
+            return;
+        }
+        if (!this.isValidFeedbackEmail(email)) {
+            if (error) error.textContent = 'Enter a valid email address.';
+            return;
+        }
+        const subject = 'Escape Room Feedback from ' + name;
+        const body = [
+            'Full Name: ' + name,
+            'Email: ' + email,
+            '',
+            'Required Fix:',
+            fix
+        ].join('\n');
+        window.location.href = 'mailto:chenboda01@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+        this.showToast('Opening email to chenboda01@gmail.com', 'success');
+        this.closeFeedback();
+    }
+
+    isValidFeedbackEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
     showTour() {
         if (localStorage.getItem('escape_room_tour_shown') || this.tourActive) return;
         this.tourActive = true;
