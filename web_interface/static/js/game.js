@@ -683,6 +683,7 @@ class GameMasterDashboard {
         if (!this.gameState) return;
         this.updateTimer(this.getCurrentTimerSeconds(), this.timerState.gameComplete, this.timerState.gameOver);
         this.updateHints(this.gameState.hints_remaining, this.gameState.hints_used);
+        this.renderGameLog();
         const currentRoom = this.gameState.current_room;
         if (currentRoom && this.gameState.rooms[currentRoom]) {
             document.getElementById('current-room').textContent = this.gameState.rooms[currentRoom].name;
