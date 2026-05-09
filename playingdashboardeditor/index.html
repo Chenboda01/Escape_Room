@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Dashboard Editor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #8b7355;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .page-title {
+            color: #d4a55a;
+            font-family: Georgia, serif;
+            font-size: 2rem;
+        }
+        
+        .nav-btn {
+            padding: 10px 24px;
+            color: #f0e0c0;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+            border: 1px solid #d4a55a;
+            background: linear-gradient(135deg, #6b4a2a, #8b7355);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(135deg, #8b7355, #a08060);
+            box-shadow: 0 0 15px rgba(212, 165, 90, 0.3);
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+        
+        .pricing-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #8b7355;
+            border-radius: 12px;
+            padding: 25px;
+        }
+        
+        .card-label {
+            color: #a08060;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #d4a55a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-group .example {
+            color: #6a5a4a;
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #8b7355;
+            background: rgba(0, 0, 0, 0.45);
+            color: #f0e0c0;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus {
+            border-color: #d4a55a;
+            box-shadow: 0 0 15px rgba(212, 165, 90, 0.2);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #5a4a3a;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .price-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .price-symbol {
+            color: #d4a55a;
+            font-size: 1.2rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        
+        .price-input-wrapper input {
+            flex: 1;
+        }
+        
+        .save-indicator {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(0, 176, 155, 0.15);
+            border: 1px solid #00b09b;
+            color: #00b09b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
+        }
+        
+        .storage-note {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 115, 85, 0.4);
+            color: #a08060;
+            font-size: 0.85rem;
+        }
+        
+        .storage-note code {
+            color: #d4a55a;
+            font-family: 'Courier New', monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            header {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="page-title">Paying Dashboard Editor</h1>
+            <a href="../player/" class="nav-btn">Back to /player</a>
+        </header>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card" data-box="box1">
+                <div class="card-label">Pricing Option 1</div>
+                <div class="form-group">
+                    <label for="title1">Title</label>
+                    <div class="example">e.g. Weekdays</div>
+                    <input type="text" id="title1" placeholder="Title">
+                </div>
+                <div class="form-group">
+                    <label for="price1">Price</label>
+                    <div class="example">e.g. 14</div>
+                    <div class="price-input-wrapper">
+                        <span class="price-symbol">$</span>
+                        <input type="number" id="price1" placeholder="0" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="desc1">Description</label>
+                    <div class="example">e.g. On Monday, Tuesday, Thursday, it costs $14.</div>
+                    <textarea id="desc1" placeholder="Description"></textarea>
+                </div>
+            </div>
+            
+            <div class="pricing-card" data-box="box2">
+                <div class="card-label">Pricing Option 2</div>
+                <div class="form-group">
+                    <label for="title2">Title</label>
+                    <div class="example">e.g. Weekdays</div>
+                    <input type="text" id="title2" placeholder="Title">
+                </div>
+                <div class="form-group">
+                    <label for="price2">Price</label>
+                    <div class="example">e.g. 14</div>
+                    <div class="price-input-wrapper">
+                        <span class="price-symbol">$</span>
+                        <input type="number" id="price2" placeholder="0" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="desc2">Description</label>
+                    <div class="example">e.g. On Monday, Tuesday, Thursday, it costs $14.</div>
+                    <textarea id="desc2" placeholder="Description"></textarea>
+                </div>
+            </div>
+            
+            <div class="pricing-card" data-box="box3">
+                <div class="card-label">Pricing Option 3</div>
+                <div class="form-group">
+                    <label for="title3">Title</label>
+                    <div class="example">e.g. Weekdays</div>
+                    <input type="text" id="title3" placeholder="Title">
+                </div>
+                <div class="form-group">
+                    <label for="price3">Price</label>
+                    <div class="example">e.g. 14</div>
+                    <div class="price-input-wrapper">
+                        <span class="price-symbol">$</span>
+                        <input type="number" id="price3" placeholder="0" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="desc3">Description</label>
+                    <div class="example">e.g. On Monday, Tuesday, Thursday, it costs $14.</div>
+                    <textarea id="desc3" placeholder="Description"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="save-indicator" id="save-indicator">Saved to localStorage</div>
+        
+        <div class="storage-note">
+            Data is saved automatically to <code>escape_room_pricing</code> in localStorage
+        </div>
+    </div>
+    
+    <script>
+        const STORAGE_KEY = 'escape_room_pricing';
+        const saveIndicator = document.getElementById('save-indicator');
+        let saveTimeout = null;
+        
+        function getDefaultData() {
+            return {
+                box1: { title: '', price: '', description: '' },
+                box2: { title: '', price: '', description: '' },
+                box3: { title: '', price: '', description: '' }
+            };
+        }
+        
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                console.warn('Could not load from localStorage:', e);
+            }
+            return getDefaultData();
+        }
+        
+        function saveToStorage(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                showSaveIndicator();
+            } catch (e) {
+                console.warn('Could not save to localStorage:', e);
+            }
+        }
+        
+        function showSaveIndicator() {
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+            saveIndicator.classList.add('show');
+            saveTimeout = setTimeout(() => {
+                saveIndicator.classList.remove('show');
+            }, 1500);
+        }
+        
+        function collectData() {
+            return {
+                box1: {
+                    title: document.getElementById('title1').value,
+                    price: document.getElementById('price1').value,
+                    description: document.getElementById('desc1').value
+                },
+                box2: {
+                    title: document.getElementById('title2').value,
+                    price: document.getElementById('price2').value,
+                    description: document.getElementById('desc2').value
+                },
+                box3: {
+                    title: document.getElementById('title3').value,
+                    price: document.getElementById('price3').value,
+                    description: document.getElementById('desc3').value
+                }
+            };
+        }
+        
+        function populateForm(data) {
+            document.getElementById('title1').value = data.box1.title || '';
+            document.getElementById('price1').value = data.box1.price || '';
+            document.getElementById('desc1').value = data.box1.description || '';
+            
+            document.getElementById('title2').value = data.box2.title || '';
+            document.getElementById('price2').value = data.box2.price || '';
+            document.getElementById('desc2').value = data.box2.description || '';
+            
+            document.getElementById('title3').value = data.box3.title || '';
+            document.getElementById('price3').value = data.box3.price || '';
+            document.getElementById('desc3').value = data.box3.description || '';
+        }
+        
+        function handleInputChange() {
+            const data = collectData();
+            saveToStorage(data);
+        }
+        
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', handleInputChange);
+        });
+        
+        const initialData = loadFromStorage();
+        populateForm(initialData);
+    </script>
+</body>
+</html>
