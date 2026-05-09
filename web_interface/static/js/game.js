@@ -218,16 +218,11 @@ class GameMasterDashboard {
         if (stored) {
             try {
                 this.gameState = JSON.parse(stored);
-                if (this.gameState.game_complete || this.gameState.game_over) {
-                    this.gameState = this.buildDefaultState();
-                } else {
-                    this.gameState.start_time = null;
-                    this.gameState.game_active = false;
-                    this.gameState.time_remaining = this.getTimerDuration() * 60;
-                    this.gameState.game_complete = false;
-                    this.gameState.game_over = false;
-                    this.gameState.paused = false;
-                }
+            if (this.gameState.game_complete || this.gameState.game_over) {
+                this.gameState = this.buildDefaultState();
+            } else if (!this.gameState.game_active) {
+                this.gameState = this.buildDefaultState();
+            }
                 if (this.gameState.time_remaining !== undefined) {
                     this.serverTimeRemaining = this.gameState.time_remaining;
                     this.displayTimeRemaining = this.gameState.time_remaining;
