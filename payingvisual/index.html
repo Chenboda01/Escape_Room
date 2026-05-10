@@ -163,15 +163,10 @@
             }
 
             function isConnected() {
-                if (hasActiveGameState()) return true;
                 try {
                     var login = JSON.parse(localStorage.getItem('escape_room_admin_login'));
-                    if (login && login.key && login.lastActive) {
-                        var fiveMin = 5 * 60 * 1000;
-                        if (Date.now() - login.lastActive < fiveMin) return true;
-                    }
-                } catch (e) {}
-                return false;
+                    return !!(login && login.key);
+                } catch (e) { return false; }
             }
 
             function showConnected() {
