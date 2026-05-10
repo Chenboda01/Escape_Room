@@ -49,7 +49,7 @@ class GameMasterDashboard {
     bootDashboard() {
         if (this.booted) return;
         this.booted = true;
-        localStorage.setItem('escape_room_visual_access', '1');
+        localStorage.setItem('escape_room_visual_access', Date.now());
         this.touchSession();
         if (this.sessionKey) {
             var gs = localStorage.getItem(this.GS);
@@ -100,7 +100,7 @@ class GameMasterDashboard {
                         localStorage.removeItem('escape_room_visual_access');
                     } else {
                     this.sessionKey = parsed.key;
-                    localStorage.setItem('escape_room_visual_access', '1');
+                    localStorage.setItem('escape_room_visual_access', Date.now());
                     this.touchSession(parsed.username, parsed.session, parsed.createdAt);
                     const registry = this.readSessionRegistry();
                     const entry = registry[parsed.key] || {};
@@ -175,7 +175,7 @@ class GameMasterDashboard {
     }
 
     touchSession(username, session, createdAt) {
-        localStorage.setItem('escape_room_visual_access', '1');
+        localStorage.setItem('escape_room_visual_access', Date.now());
         if (!this.sessionKey) return;
         const now = Date.now();
         const registry = this.readSessionRegistry();
