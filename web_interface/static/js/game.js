@@ -49,6 +49,7 @@ class GameMasterDashboard {
     bootDashboard() {
         if (this.booted) return;
         this.booted = true;
+        this.touchSession();
         this.connectWebSocket();
         this.bindEvents();
         this.loadFromStorage();
@@ -184,7 +185,16 @@ class GameMasterDashboard {
     cleanupExpiredSessions() {
         const registry = this.readSessionRegistry();
         let changed = false;
+        const currentKey = this.sessionKey || (
+            (() => {
+                try {
+                    const s = JSON.parse(localStorage.getItem(this.SESSION_LOGIN));
+                    return s ? s.key : null;
+                } catch { return null; }
+            })()
+        );
         Object.keys(registry).forEach(key => {
+            if (key === currentKey) return;
             if (!this.isExpired(registry[key].lastActive || registry[key].createdAt)) return;
             this.removeSessionData(key);
             delete registry[key];
@@ -197,7 +207,7 @@ class GameMasterDashboard {
             try {
                 const parsed = JSON.parse(current);
                 if (parsed && this.isExpired(parsed.lastActive || parsed.createdAt)) localStorage.removeItem(this.SESSION_LOGIN);
-            } catch { localStorage.removeItem(this.SESSION_LOGIN); }
+            } catch { /* keep on parse error — never nuke the session */ }
         }
     }
 
