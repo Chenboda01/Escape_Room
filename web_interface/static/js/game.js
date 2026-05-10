@@ -96,6 +96,7 @@ class GameMasterDashboard {
                 if (parsed && parsed.key) {
                     if (this.isExpired(parsed.lastActive || parsed.createdAt || 0)) {
                         localStorage.removeItem(this.SESSION_LOGIN);
+                        localStorage.removeItem('escape_room_visual_access');
                     } else {
                     this.sessionKey = parsed.key;
                     this.touchSession(parsed.username, parsed.session, parsed.createdAt);
@@ -188,6 +189,7 @@ class GameMasterDashboard {
         this.writeSessionRegistry(registry);
         localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
         localStorage.setItem(this.SESSION_LOGIN + '_bak', JSON.stringify(entry));
+        localStorage.setItem('escape_room_visual_access', '1');
     }
 
     cleanupExpiredSessions() {
@@ -224,6 +226,7 @@ class GameMasterDashboard {
         localStorage.removeItem('escape_room_customizer_' + key);
         localStorage.removeItem('escape_room_code_' + key);
         localStorage.removeItem('escape_room_hint_' + key);
+        localStorage.removeItem('escape_room_visual_access');
         Object.keys(localStorage).forEach(storageKey => {
             if (storageKey.startsWith('escape_room_pairing_') && localStorage.getItem(storageKey) === key) {
                 localStorage.removeItem(storageKey);

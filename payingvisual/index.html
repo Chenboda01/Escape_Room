@@ -163,10 +163,7 @@
             }
 
             function isConnected() {
-                try {
-                    var login = JSON.parse(localStorage.getItem('escape_room_admin_login'));
-                    return !!(login && login.key);
-                } catch (e) { return false; }
+                return localStorage.getItem('escape_room_visual_access') === '1';
             }
 
             function showConnected() {
