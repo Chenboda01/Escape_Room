@@ -161,23 +161,43 @@
 
             function init() {
                 if (hasActiveGameState()) {
-                    lockScreen.style.display = 'none';
-                    connectedScreen.style.display = 'flex';
-                    exitBtn.style.display = 'flex';
-                    renderPricing();
-                    setTimeout(function() {
-                        document.querySelectorAll('.pricing-card').forEach(function(c) {
-                            c.classList.add('visible');
-                        });
-                    }, 100);
+                    showConnected();
                 } else {
-                    connectedScreen.style.display = 'none';
-                    lockScreen.style.display = 'flex';
-                    exitBtn.style.display = 'flex';
+                    setTimeout(function() {
+                        if (hasActiveGameState()) {
+                            showConnected();
+                        } else {
+                            showLocked();
+                        }
+                    }, 500);
                 }
             }
 
+            function showConnected() {
+                lockScreen.style.display = 'none';
+                connectedScreen.style.display = 'flex';
+                exitBtn.style.display = 'flex';
+                renderPricing();
+                setTimeout(function() {
+                    document.querySelectorAll('.pricing-card').forEach(function(c) {
+                        c.classList.add('visible');
+                    });
+                }, 100);
+            }
+
+            function showLocked() {
+                connectedScreen.style.display = 'none';
+                lockScreen.style.display = 'flex';
+                exitBtn.style.display = 'flex';
+            }
+
             init();
+            window.addEventListener('storage', function(e) {
+                if (e.key && (e.key === 'escape_room_game_state' || e.key.startsWith('escape_room_game_state_'))) {
+                    if (hasActiveGameState()) showConnected();
+                    else showLocked();
+                }
+            });
         })();
     </script>
 </body>
