@@ -186,7 +186,7 @@
 
             function init() {
                 var ts = localStorage.getItem('escape_room_visual_access');
-                if (ts && Date.now() - Number(ts) < 60000) showConnected();
+                if (ts && Date.now() - Number(ts) < 1000) showConnected();
                 else showLocked();
             }
 
