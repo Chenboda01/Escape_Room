@@ -50,6 +50,12 @@ class GameMasterDashboard {
         if (this.booted) return;
         this.booted = true;
         this.touchSession();
+        if (this.sessionKey) {
+            var gs = localStorage.getItem(this.GS);
+            if (!gs || !JSON.parse(gs).game_active) {
+                localStorage.removeItem('escape_room_player_connected_' + this.sessionKey);
+            }
+        }
         this.connectWebSocket();
         this.bindEvents();
         this.loadFromStorage();
