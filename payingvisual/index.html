@@ -84,12 +84,7 @@
             font-size: 1.2rem;
             letter-spacing: 4px;
             text-transform: uppercase;
-            animation: subtle-pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes subtle-pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
+            opacity: 0.5;
         }
 
         #exit-btn {
@@ -171,7 +166,10 @@
                 if (hasActiveGameState()) return true;
                 try {
                     const login = JSON.parse(localStorage.getItem('escape_room_admin_login'));
-                    if (login && login.key) return true;
+                    if (login && login.key && login.lastActive) {
+                        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+                        if (Date.now() - login.lastActive < thirtyDays) return true;
+                    }
                 } catch (e) {}
                 return false;
             }
