@@ -162,18 +162,16 @@
                 } catch (e) {}
             }
 
-            function init() {
-                if (hasActiveGameState()) {
-                    showConnected();
-                } else {
-                    setTimeout(function() {
-                        if (hasActiveGameState()) {
-                            showConnected();
-                        } else {
-                            showLocked();
-                        }
-                    }, 500);
-                }
+            function isConnected() {
+                if (hasActiveGameState()) return true;
+                try {
+                    var login = JSON.parse(localStorage.getItem('escape_room_admin_login'));
+                    if (login && login.key && login.lastActive) {
+                        var fiveMin = 5 * 60 * 1000;
+                        if (Date.now() - login.lastActive < fiveMin) return true;
+                    }
+                } catch (e) {}
+                return false;
             }
 
             function showConnected() {
@@ -192,6 +190,11 @@
                 connectedScreen.style.display = 'none';
                 lockScreen.style.display = 'flex';
                 exitBtn.style.display = 'flex';
+            }
+
+            function init() {
+                if (isConnected()) showConnected();
+                else showLocked();
             }
 
             init();
