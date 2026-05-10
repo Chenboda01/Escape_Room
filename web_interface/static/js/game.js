@@ -229,6 +229,7 @@ class GameMasterDashboard {
                     this.timerState.gameComplete = Boolean(this.gameState.game_complete);
                     this.timerState.gameOver = Boolean(this.gameState.game_over);
                 }
+                if (this.gameState.game_active) this.localConnected = true;
                 this.saveToStorage();
                 this.renderGameState();
             } catch {}
