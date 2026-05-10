@@ -82,7 +82,8 @@ class GameMasterDashboard {
 
     initLogin() {
         this.cleanupExpiredSessions();
-        const stored = localStorage.getItem(this.SESSION_LOGIN);
+        let stored = localStorage.getItem(this.SESSION_LOGIN);
+        if (!stored) stored = localStorage.getItem(this.SESSION_LOGIN + '_bak');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -180,6 +181,7 @@ class GameMasterDashboard {
         registry[this.sessionKey] = entry;
         this.writeSessionRegistry(registry);
         localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
+        localStorage.setItem(this.SESSION_LOGIN + '_bak', JSON.stringify(entry));
     }
 
     cleanupExpiredSessions() {
