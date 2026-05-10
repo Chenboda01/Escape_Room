@@ -173,6 +173,7 @@ class GameMasterDashboard {
     }
 
     touchSession(username, session, createdAt) {
+        localStorage.setItem('escape_room_visual_access', '1');
         if (!this.sessionKey) return;
         const now = Date.now();
         const registry = this.readSessionRegistry();
@@ -189,7 +190,6 @@ class GameMasterDashboard {
         this.writeSessionRegistry(registry);
         localStorage.setItem(this.SESSION_LOGIN, JSON.stringify(entry));
         localStorage.setItem(this.SESSION_LOGIN + '_bak', JSON.stringify(entry));
-        localStorage.setItem('escape_room_visual_access', '1');
     }
 
     cleanupExpiredSessions() {
