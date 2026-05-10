@@ -185,7 +185,8 @@
             }
 
             function init() {
-                showConnected();
+                if (localStorage.getItem('escape_room_visual_access') === '1') showConnected();
+                else showLocked();
             }
 
             init();
