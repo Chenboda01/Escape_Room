@@ -73,18 +73,56 @@
             width: 100vw;
             height: 100vh;
             display: none;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
+            gap: 60px;
             background: #0a0a0a;
-            color: #4a4a5a;
+            padding: 60px;
         }
 
-        .connected-text {
-            font-size: 1.2rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            opacity: 0.5;
+        .pricing-card {
+            text-align: center;
+            max-width: 320px;
+            flex: 1;
+        }
+
+        .pricing-title {
+            font-size: 1.6rem;
+            color: #d4a55a;
+            font-family: Georgia, serif;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+
+        .pricing-price {
+            font-size: 5rem;
+            font-weight: 300;
+            color: #e6e6e6;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+
+        .pricing-price span {
+            font-size: 2rem;
+            vertical-align: super;
+            margin-right: 4px;
+        }
+
+        .pricing-desc {
+            font-size: 0.95rem;
+            color: #707070;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            #connected-screen {
+                flex-direction: column;
+                gap: 40px;
+                padding: 40px 20px;
+            }
+            .pricing-title { font-size: 1.3rem; }
+            .pricing-price { font-size: 3.5rem; }
         }
 
         #exit-btn {
@@ -127,7 +165,21 @@
     </div>
 
     <div id="connected-screen">
-        <div class="connected-text">Connected</div>
+        <div class="pricing-card" id="card1">
+            <div class="pricing-title"></div>
+            <div class="pricing-price"><span>$</span></div>
+            <div class="pricing-desc"></div>
+        </div>
+        <div class="pricing-card" id="card2">
+            <div class="pricing-title"></div>
+            <div class="pricing-price"><span>$</span></div>
+            <div class="pricing-desc"></div>
+        </div>
+        <div class="pricing-card" id="card3">
+            <div class="pricing-title"></div>
+            <div class="pricing-price"><span>$</span></div>
+            <div class="pricing-desc"></div>
+        </div>
     </div>
 
     <button id="exit-btn" aria-label="Return to player">
@@ -174,12 +226,28 @@
                 return false;
             }
 
+            function renderPricing() {
+                try {
+                    var data = JSON.parse(localStorage.getItem('escape_room_pricing'));
+                    if (!data) return;
+                    ['box1','box2','box3'].forEach(function(box, i) {
+                        var card = document.getElementById('card' + (i + 1));
+                        if (!card || !data[box]) return;
+                        var d = data[box];
+                        card.querySelector('.pricing-title').textContent = d.title || '';
+                        card.querySelector('.pricing-price').innerHTML = '<span>$</span>' + (d.price || '');
+                        card.querySelector('.pricing-desc').textContent = d.description || '';
+                    });
+                } catch (e) {}
+            }
+
             function init() {
                 if (isConnected()) {
                     app.style.display = 'none';
                     lockScreen.style.display = 'none';
                     connectedScreen.style.display = 'flex';
                     exitBtn.style.display = 'flex';
+                    renderPricing();
                 } else {
                     app.style.display = 'none';
                     lockScreen.style.display = 'flex';
