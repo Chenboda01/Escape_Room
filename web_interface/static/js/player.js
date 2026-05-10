@@ -23,6 +23,7 @@ class PlayerScreen {
     get HINT() { return this.sessionKey ? 'escape_room_hint_' + this.sessionKey : 'escape_room_hint'; }
 
     init() {
+        this.restorePairedState();
         this.connectWebSocket();
         this.bindEvents();
         this.showImportUI();
@@ -97,6 +98,22 @@ class PlayerScreen {
         this.showGameUI();
         this.updateConnectionStatus();
         this.showToast('Paired with code: ' + code, 'success');
+    }
+
+    restorePairedState() {
+        var keys = Object.keys(localStorage);
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].startsWith('escape_room_player_connected_')) {
+                var sessionKey = keys[i].slice('escape_room_player_connected_'.length);
+                if (sessionKey) {
+                    this.sessionKey = sessionKey;
+                    this.paired = true;
+                    this.showGameUI();
+                    this.updateConnectionStatus();
+                    return;
+                }
+            }
+        }
     }
 
     connectWebSocket() {
