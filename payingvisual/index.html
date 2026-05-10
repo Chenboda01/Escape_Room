@@ -131,15 +131,18 @@
                 var keys = Object.keys(localStorage);
                 for (var i = 0; i < keys.length; i++) {
                     var key = keys[i];
-                    if (key === 'escape_room_game_state' || key.startsWith('escape_room_game_state_')) {
+                    if (key === 'escape_room_game_state' || key.indexOf('escape_room_game_state_') === 0) {
                         try {
-                            var data = localStorage.getItem(key);
-                            if (data) {
-                                var state = JSON.parse(data);
-                                if (state && state.game_active === true) return true;
-                            }
+                            var state = JSON.parse(localStorage.getItem(key));
+                            if (state && state.game_active === true) return true;
                         } catch (e) { continue; }
                     }
+                }
+                for (var j = 0; j < keys.length; j++) {
+                    try {
+                        var s = JSON.parse(localStorage.getItem(keys[j]));
+                        if (s && s.game_active === true && s.time_remaining !== undefined) return true;
+                    } catch (e) { continue; }
                 }
                 return false;
             }
