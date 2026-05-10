@@ -167,8 +167,17 @@
                 return false;
             }
 
+            function isConnected() {
+                if (hasActiveGameState()) return true;
+                try {
+                    const login = JSON.parse(localStorage.getItem('escape_room_admin_login'));
+                    if (login && login.key) return true;
+                } catch (e) {}
+                return false;
+            }
+
             function init() {
-                if (hasActiveGameState()) {
+                if (isConnected()) {
                     app.style.display = 'none';
                     lockScreen.style.display = 'none';
                     connectedScreen.style.display = 'flex';
